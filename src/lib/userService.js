@@ -28,6 +28,7 @@ export async function createUser(userData) {
       name: userData.name,
       email: userData.email.toLowerCase(),
       password: hashedPassword,
+      role: "editor",
       createdAt: new Date(),
       updatedAt: new Date(),
       isActive: true
