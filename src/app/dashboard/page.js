@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/sidebar';
-
+import CONFIG from '../../../config';
 export default function Dashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +31,7 @@ export default function Dashboard() {
         {/* Main content */}
         <main className="flex-1 flex items-center justify-center bg-gray-50 p-6 pl-80">
           <h1 className="text-4xl font-bold text-blue-400 leading-tight">
-            Welcome to LangCentrix Dashboard
+            Welcome to {CONFIG.APP_NAME} Dashboard
           </h1>
         </main>
       </div>

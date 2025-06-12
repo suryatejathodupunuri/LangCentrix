@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { User, ChevronDown, LogOut, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
+import CONFIG from '../../../config.js';
 
 export default function Navbar({ toggleSidebar }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -45,7 +46,7 @@ export default function Navbar({ toggleSidebar }) {
 
           {/* Brand Name */}
           <h2 className="text-2xl font-bold text-blue-400 tracking-tight">
-            LangCentrix
+            {CONFIG.APP_NAME}
           </h2>
         </div>
 
