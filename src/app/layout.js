@@ -1,20 +1,19 @@
-import { Inter } from 'next/font/google';
-import './globals.css';
-import CONFIG from '../../config.js';
+// app/layout.js or app/layout.tsx
+import './globals.css'
+import SessionProvider from '@/components/providers/SessionProvider'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth-config'
 
-const inter = Inter({ subsets: ['latin'] });
+export default async function RootLayout({ children }) {
+  const session = await getServerSession(authOptions)
 
-export const metadata = {
-  title: CONFIG.APP_NAME,
-  description: CONFIG.APP_DESCRIPTION,
-};
-
-export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        {children}
+      <body>
+        <SessionProvider session={session}>
+          {children}
+        </SessionProvider>
       </body>
     </html>
-  );
+  )
 }

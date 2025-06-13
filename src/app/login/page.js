@@ -1,63 +1,54 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import CONFIG from '../../../config.js';
+import { useState } from 'react'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import CONFIG from '../../../config.js'
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
     email: '',
     password: ''
-  });
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
+  })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const router = useRouter()
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: '',
-      }));
-    }
-  };
+    }))
+    if (error) setError('')
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setErrors({});
+    e.preventDefault()
+    setLoading(true)
+    setError('')
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+      const result = await signIn('credentials', {
+        email: formData.email,
+        password: formData.password,
+        redirect: false
+      })
 
-      const data = await response.json();
-
-      if (response.ok) {
-        router.push(CONFIG.AUTH.LOGIN_REDIRECT);
+      if (result?.error) {
+        setError('Invalid email or password')
       } else {
-        if (data.error) {
-          setErrors({ general: data.error });
-        }
+        router.push(CONFIG.AUTH.LOGIN_REDIRECT)
+        router.refresh()
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setErrors({ general: 'Something went wrong. Please try again.' });
+    } catch (err) {
+      console.error('Login error:', err)
+      setError('Something went wrong. Please try again.')
     } finally {
-      setIsLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex">
@@ -67,8 +58,8 @@ export default function LoginPage() {
           <img
             src="/IIITH_Logo.jpg"
             alt="IIIT Hyderabad Logo"
-             className="object-contain"
-  style={{ height: '60px', maxWidth: '180px', borderRadius: '12px' }}
+            className="object-contain"
+            style={{ height: '60px', maxWidth: '180px', borderRadius: '12px' }}
           />
         </div>
 
@@ -86,9 +77,9 @@ export default function LoginPage() {
             <p className="text-slate-600 text-base">Access your {CONFIG.APP_NAME} dashboard</p>
           </header>
 
-          {errors.general && (
+          {error && (
             <div className="bg-red-100 border border-red-200 text-red-700 mx-8 px-4 py-2 rounded-md text-sm mb-4">
-              {errors.general}
+              {error}
             </div>
           )}
 
@@ -105,12 +96,8 @@ export default function LoginPage() {
                 placeholder="Enter your email"
                 value={formData.email}
                 onChange={handleChange}
-                suppressHydrationWarning={true}
                 className="w-full h-12 border border-slate-300 rounded-md px-4 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
-              {errors.email && (
-                <p className="text-sm text-red-600 mt-1">{errors.email}</p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -125,28 +112,20 @@ export default function LoginPage() {
                 placeholder="Enter your password"
                 value={formData.password}
                 onChange={handleChange}
-                suppressHydrationWarning={true}
                 className="w-full h-12 border border-slate-300 rounded-md px-4 text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
-              {errors.password && (
-                <p className="text-sm text-red-600 mt-1">{errors.password}</p>
-              )}
             </div>
 
             <button
               type="submit"
-                suppressHydrationWarning={true}
-
-              disabled={isLoading}
+              disabled={loading}
               className="w-full h-12 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-base rounded-md mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Signing in...' : `Login to ${CONFIG.APP_NAME}`}
+              {loading ? 'Signing in...' : `Login to ${CONFIG.APP_NAME}`}
             </button>
-
-
           </main>
         </form>
       </div>
     </div>
-  );
+  )
 }

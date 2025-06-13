@@ -1,49 +1,59 @@
-import { NextResponse } from 'next/server';
-import { verifyTokenEdge } from './lib/auth';
-import CONFIG from '../config.js';
+import { withAuth } from "next-auth/middleware"
+import { NextResponse } from 'next/server'
+import CONFIG from '../config.js'
 
-export async function middleware(request) {
-  const { pathname } = request.nextUrl;
+export default withAuth(
+  function middleware(req) {
+    const { pathname } = req.nextUrl
+    const token = req.nextauth.token
 
-  const isProtectedRoute = CONFIG.PROTECTED_ROUTES.some(route =>
-    pathname.startsWith(route)
-  );
+    // Check if user is trying to access protected routes
+    const isProtectedRoute = CONFIG.PROTECTED_ROUTES.some(route =>
+      pathname.startsWith(route)
+    )
 
-  const isPublicRoute =
-    CONFIG.PUBLIC_ROUTES.includes(pathname) ||
-    pathname.startsWith('/api/auth') ||
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/favicon.ico');
-
-  const token = request.cookies.get('auth-token')?.value;
-
-  if (isProtectedRoute) {
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
+    // If accessing protected route without proper authentication
+    if (isProtectedRoute && !token) {
+      return NextResponse.redirect(new URL('/login', req.url))
     }
 
-    const decoded = await verifyTokenEdge(token);
-    if (!decoded) {
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.set('auth-token', '', { maxAge: 0 });
-      return response;
+    // If user is authenticated and trying to access login/signup
+    if ((pathname === '/login' || pathname === '/signup') && token) {
+      return NextResponse.redirect(new URL(CONFIG.AUTH.LOGIN_REDIRECT, req.url))
     }
 
-    return NextResponse.next();
+    return NextResponse.next()
+  },
+  {
+    callbacks: {
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl
+        
+        // Allow access to public routes
+        const isPublicRoute = CONFIG.PUBLIC_ROUTES.includes(pathname) ||
+          pathname.startsWith('/api/auth') ||
+          pathname.startsWith('/_next') ||
+          pathname.startsWith('/favicon.ico')
+        
+        if (isPublicRoute) return true
+        
+        // For protected routes, require token
+        const isProtectedRoute = CONFIG.PROTECTED_ROUTES.some(route =>
+          pathname.startsWith(route)
+        )
+        
+        if (isProtectedRoute) {
+          return !!token
+        }
+        
+        return true
+      },
+    },
   }
-
-  if ((pathname === '/login' || pathname === '/signup') && token) {
-    const decoded = await verifyTokenEdge(token);
-    if (decoded) {
-      return NextResponse.redirect(new URL(CONFIG.AUTH.LOGIN_REDIRECT, request.url));
-    }
-  }
-
-  return NextResponse.next();
-}
+)
 
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
-};
+}

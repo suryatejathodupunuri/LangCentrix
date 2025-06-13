@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { User, ChevronDown, LogOut, Menu } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
 import CONFIG from '../../../config.js';
 
 export default function Navbar({ toggleSidebar }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const router = useRouter();
 
   const userData = {
     name: "John Anderson",
@@ -19,12 +18,7 @@ export default function Navbar({ toggleSidebar }) {
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true);
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-      });
-      if (response.ok) {
-        router.push("/login");
-      }
+      await signOut({ callbackUrl: '/login' }); // ✅ Uses NextAuth logout with redirect
     } catch (error) {
       console.error("Logout error:", error);
       setIsLoggingOut(false);

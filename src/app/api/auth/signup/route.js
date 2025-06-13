@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createUser } from '@/lib/userService';
-import { isValidEmail, isValidPassword, generateToken } from '@/lib/auth';
+import { isValidEmail, isValidPassword } from '@/lib/auth';
+import { signIn } from 'next-auth/react';
 
 export async function POST(request) {
   try {
@@ -33,35 +34,18 @@ export async function POST(request) {
     // Create user
     const user = await createUser({ name, email, password });
     
-    // Generate JWT token
-    const token = generateToken({
-      userId: user._id,
-      email: user.email,
-      name: user.name
-    });
-    
-    // Create response
-    const response = NextResponse.json(
+    // Return success response - client will handle NextAuth signin
+    return NextResponse.json(
       { 
         message: 'User created successfully',
         user: {
-          id: user._id,
+          id: user.id || user._id,
           name: user.name,
           email: user.email
         }
       },
       { status: 201 }
     );
-    
-    // Set HTTP-only cookie
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-    });
-    
-    return response;
     
   } catch (error) {
     console.error('Signup error:', error);
