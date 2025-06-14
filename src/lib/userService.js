@@ -22,7 +22,7 @@ export async function createUser(userData) {
         name: userData.name,
         email: userData.email.toLowerCase(),
         password: hashedPassword,
-        role: "editor",
+        role: "Editor",
         isActive: true
       },
       select: {

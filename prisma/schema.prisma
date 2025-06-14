@@ -44,7 +44,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?   // For credentials login
-  role          String    @default("editor")
+  role          String    @default("Editor")
   isActive      Boolean   @default(true)
   lastLogin     DateTime?
   createdAt     DateTime  @default(now())

@@ -1,18 +1,18 @@
 'use client';
 
-import { Settings, HelpCircle } from 'lucide-react';
+import { Settings, HelpCircle, Users, PlusCircle } from 'lucide-react';
 import clsx from 'clsx';
+import { useSession } from 'next-auth/react';
 
 const sidebarItems = [
   { name: 'Dashboard', href: '/dashboard', isActive: true },
-  { name: 'My Tasks', href: '#', isActive: false },
-  { name: 'My Planner', href: '#', isActive: false },
-  { name: 'Documents', href: '#', isActive: false },
-  { name: 'Reviews', href: '#', isActive: false },
-  { name: 'Deadlines', href: '#',  isActive: false },
+  { name: 'My Tasks', href: '#', isActive: false }
 ];
 
 export default function Sidebar({ isOpen }) {
+  const { data: session } = useSession();
+  const user = session?.user;
+
   return (
     <>
       {/* Overlay for mobile screens */}
@@ -62,9 +62,31 @@ export default function Sidebar({ isOpen }) {
               <span className="flex-1">{item.name}</span>
             </a>
           ))}
+
+          {/* Admin-only: Manage Users */}
+          {user?.role === 'Admin' && (
+            <a
+              href="/manageusers"
+              className="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
+            >
+              <Users className="h-4 w-4 mr-3" />
+              <span className="flex-1">Manage Users</span>
+            </a>
+          )}
+
+          {/* Manager-only: Create Task */}
+          {(user?.role === 'Manager' || user?.role === 'Admin') && (
+            <a
+              href="/createtask"
+              className="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
+            >
+              <PlusCircle className="h-4 w-4 mr-3" />
+              <span className="flex-1">Create Task</span>
+            </a>
+          )}
         </nav>
 
-        {/* Empty Space (replaced Upgrade Section) */}
+        {/* Empty Space */}
         <div className="p-4 m-4"></div>
 
         {/* Bottom Menu */}
