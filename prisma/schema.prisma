@@ -61,3 +61,39 @@ model VerificationToken {
 
   @@unique([identifier, token])
 }
+
+model Task {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  taskId             String  @unique              
+  project            String?
+  taskType           String?
+  assignTo           String?
+  taskLabel          String?
+  priority           String?
+  sourceLang         String?
+  targetLang         String?
+  description        String?
+  expectedFinishDate DateTime?
+  domain             String?
+  sourceFile         String?
+  secondFile         String?
+  currentStatus      String?
+  modifiedAt         DateTime? @updatedAt
+  statusUpdatedAt    DateTime?
+  currentIteration   Int?
+  Delete_Flag        Boolean? @default(false)
+  createdBy          String?
+  createdByRole      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Project {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String   
+  description  String?
+  clientName   String?
+  managerName  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
