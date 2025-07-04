@@ -1,69 +1,46 @@
 import { NextResponse } from 'next/server';
-import { createUser } from '@/lib/userService';
-import { signIn } from 'next-auth/react'; // Not used here but left untouched
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request) {
   try {
     const { name, email, password } = await request.json();
 
-    // Validation
+    // Basic validation
     if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: 'Name, email, and password are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'All fields are required' }, { status: 400 });
     }
 
-    // Inline replacement for isValidEmail
-    const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-    if (!isEmailValid) {
-      return NextResponse.json(
-        { error: 'Please enter a valid email address' },
-        { status: 400 }
-      );
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 });
     }
 
-    // Inline replacement for isValidPassword
-    const isPasswordValid = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(password);
-    if (!isPasswordValid) {
-      return NextResponse.json(
-        {
-          error:
-            'Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number'
-        },
-        { status: 400 }
-      );
+    // Check if signup request already exists
+    const existingRequest = await prisma.signupRequest.findUnique({ where: { email } });
+    if (existingRequest) {
+      return NextResponse.json({ error: 'Signup request already submitted' }, { status: 409 });
     }
 
-    // Create user
-    const user = await createUser({ name, email, password });
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Return success response
-    return NextResponse.json(
-      {
-        message: 'User created successfully',
-        user: {
-          id: user.id || user._id,
-          name: user.name,
-          email: user.email
-        }
+    // Create a new signup request
+    await prisma.signupRequest.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
       },
+    });
+
+    return NextResponse.json(
+      { message: 'Signup request submitted. Awaiting admin approval.' },
       { status: 201 }
     );
-
   } catch (error) {
-    console.error('Signup error:', error);
-
-    if (error.message === 'User already exists with this email') {
-      return NextResponse.json(
-        { error: 'An account with this email already exists' },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: 'Something went wrong. Please try again.' },
-      { status: 500 }
-    );
+    console.error('Signup request error:', error);
+    return NextResponse.json({ error: 'Something went wrong' }, { status: 500 });
   }
 }
