@@ -9,6 +9,8 @@ import {
   ChevronUp,
   Briefcase,
   ListChecks,
+  LayoutDashboard,
+  ListTodo
 } from "lucide-react";
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
@@ -16,7 +18,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const sidebarItems = [
-  { name: "Dashboard", href: "/dashboard", icon: null },
+  { name: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4 mr-3" /> },
 ];
 
 export default function Sidebar({ isOpen }) {
@@ -24,6 +26,12 @@ export default function Sidebar({ isOpen }) {
   const user = session?.user;
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
+
+  // Check if current path is under users dropdown
+  const isUsersSubMenuActive = 
+    pathname === "/manageusers" || 
+    pathname === "/approveusers" || 
+    pathname === "/UserCreation";
 
   return (
     <>
@@ -69,7 +77,7 @@ export default function Sidebar({ isOpen }) {
                   : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
               )}
             >
-              <span className="text-lg mr-3">{item.icon}</span>
+              {item.icon}
               <span className="flex-1">{item.name}</span>
             </a>
           ))}
@@ -79,7 +87,12 @@ export default function Sidebar({ isOpen }) {
             <div>
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
+                className={clsx(
+                  "flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                  isUsersSubMenuActive
+                    ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                    : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+                )}
               >
                 <Users className="h-4 w-4 mr-3" />
                 <span className="flex-1 text-left">Users</span>
@@ -94,19 +107,34 @@ export default function Sidebar({ isOpen }) {
                 <div className="ml-8 space-y-1 mt-1">
                   <a
                     href="/manageusers"
-                    className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-gray-100 hover:text-slate-800 transition-all duration-150"
+                    className={clsx(
+                      "block px-3 py-2 text-sm rounded-lg transition-all duration-150",
+                      pathname === "/manageusers"
+                        ? "bg-gray-800 text-white"
+                        : "text-slate-700 hover:bg-gray-100 hover:text-slate-800"
+                    )}
                   >
                     Manage Users
                   </a>
                   <a
                     href="/approveusers"
-                    className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-gray-100 hover:text-slate-800 transition-all duration-150"
+                    className={clsx(
+                      "block px-3 py-2 text-sm rounded-lg transition-all duration-150",
+                      pathname === "/approveusers"
+                        ? "bg-gray-800 text-white"
+                        : "text-slate-700 hover:bg-gray-100 hover:text-slate-800"
+                    )}
                   >
                     Approve Users
                   </a>
                   <a
                     href="/UserCreation"
-                    className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-gray-100 hover:text-slate-800 transition-all duration-150"
+                    className={clsx(
+                      "block px-3 py-2 text-sm rounded-lg transition-all duration-150",
+                      pathname === "/UserCreation"
+                        ? "bg-gray-800 text-white"
+                        : "text-slate-700 hover:bg-gray-100 hover:text-slate-800"
+                    )}
                   >
                     Create User
                   </a>
@@ -115,33 +143,37 @@ export default function Sidebar({ isOpen }) {
             </div>
           )}
 
-          {/* Everyone: Projects */}
-          <a
-            href="/Projects"
-            className={clsx(
-              "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-              pathname === "/Projects"
-                ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
-                : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
-            )}
-          >
-            <Briefcase className="h-4 w-4 mr-3" />
-            <span className="flex-1">Projects</span>
-          </a>
+          {/* Projects - Only for Admin & Manager */}
+          {(user?.role === "Admin" || user?.role === "Manager") && (
+            <a
+              href="/Projects"
+              className={clsx(
+                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                pathname === "/Projects"
+                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+              )}
+            >
+              <Briefcase className="h-4 w-4 mr-3" />
+              <span className="flex-1">Projects</span>
+            </a>
+          )}
 
-          {/* Everyone: My Tasks */}
-          <a
-            href="/TaskTable"
-            className={clsx(
-              "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-              pathname === "/TaskTable"
-                ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
-                : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
-            )}
-          >
-            <ListChecks className="h-4 w-4 mr-3" />
-            <span className="flex-1">My Tasks</span>
-          </a>
+          {/* My Tasks - Only for Admin & Manager */}
+          {(user?.role === "Admin" || user?.role === "Manager") && (
+            <a
+              href="/TaskTable"
+              className={clsx(
+                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                pathname === "/TaskTable"
+                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+              )}
+            >
+              <ListChecks className="h-4 w-4 mr-3" />
+              <span className="flex-1">My Tasks</span>
+            </a>
+          )}
 
           {/* Manager & Admin only: Create Task */}
           {(user?.role === "Manager" || user?.role === "Admin") && (
@@ -164,12 +196,13 @@ export default function Sidebar({ isOpen }) {
             <a
               href="/EditorTask"
               className={clsx(
-                "flex items-center px-7 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
                 pathname === "/EditorTask"
                   ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
                   : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
               )}
             >
+              <ListTodo className="h-4 w-4 mr-3" />
               <span className="flex-1">Tasks</span>
             </a>
           )}

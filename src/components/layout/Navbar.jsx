@@ -2,18 +2,26 @@
 
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { User, ChevronDown, LogOut, Menu } from "lucide-react";
+import { User, ChevronDown, LogOut, Menu, Key } from "lucide-react";
 import CONFIG from '../../../config.js';
 
 export default function Navbar({ toggleSidebar }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [passwordError, setPasswordError] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const { data: session } = useSession();
 
   const userData = {
     name: session?.user?.name || "User",
     email: session?.user?.email || "user@example.com",
-    role: session?.user?.role || "Member", // 🔁 Assumes role is part of session.user
+    role: session?.user?.role || "Member",
   };
 
   const handleLogout = async () => {
@@ -25,6 +33,66 @@ export default function Navbar({ toggleSidebar }) {
       setIsLoggingOut(false);
     }
   };
+
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswordData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handlePasswordSubmit = async (e) => {
+  e.preventDefault();
+
+  // Frontend validations
+  if (passwordData.newPassword !== passwordData.confirmPassword) {
+    setPasswordError("New passwords don't match");
+    return;
+  }
+
+  if (passwordData.newPassword.length < 8) {
+    setPasswordError("Password must be at least 8 characters");
+    return;
+  }
+
+  setPasswordError('');
+  setIsChangingPassword(true);
+
+  try {
+    const response = await fetch(`/api/users/${session.user.id}/change-password`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        reenterNewPassword: passwordData.confirmPassword,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to change password');
+    }
+
+    // On success
+    setPasswordData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    });
+    setShowChangePassword(false);
+    alert('Password changed successfully!');
+  } catch (error) {
+    console.error("Password change error:", error);
+    setPasswordError(error.message || "Failed to change password");
+  } finally {
+    setIsChangingPassword(false);
+  }
+};
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm fixed w-full z-50">
@@ -76,6 +144,19 @@ export default function Navbar({ toggleSidebar }) {
                 </div>
               </div>
 
+              <div className="border-t border-gray-100">
+                <button
+                  onClick={() => {
+                    setIsProfileOpen(false);
+                    setShowChangePassword(true);
+                  }}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm font-medium text-slate-700 hover:bg-gray-50 transition-all duration-150"
+                >
+                  <Key className="h-5 w-5 text-blue-500" />
+                  <span>Change Password</span>
+                </button>
+              </div>
+
               <div className="border-t border-gray-100 p-3">
                 <button
                   onClick={handleLogout}
@@ -96,6 +177,95 @@ export default function Navbar({ toggleSidebar }) {
           className="fixed inset-0 z-30"
           onClick={() => setIsProfileOpen(false)}
         />
+      )}
+
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div 
+            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6">
+              <h3 className="text-xl font-bold text-slate-800 mb-2">Change Password</h3>
+              <p className="text-sm text-slate-500 mb-6">Enter your current and new password</p>
+              
+              <form onSubmit={handlePasswordSubmit}>
+                <div className="space-y-4">
+                  <div>
+                    <label htmlFor="currentPassword" className="block text-sm font-medium text-slate-700 mb-1">
+                      Current Password
+                    </label>
+                    <input
+                      type="password"
+                      id="currentPassword"
+                      name="currentPassword"
+                      value={passwordData.currentPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="newPassword" className="block text-sm font-medium text-slate-700 mb-1">
+                      New Password
+                    </label>
+                    <input
+                      type="password"
+                      id="newPassword"
+                      name="newPassword"
+                      value={passwordData.newPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-slate-700 mb-1">
+                      Confirm New Password
+                    </label>
+                    <input
+                      type="password"
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      value={passwordData.confirmPassword}
+                      onChange={handlePasswordChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                      required
+                    />
+                  </div>
+                  
+                  {passwordError && (
+                    <div className="text-red-500 text-sm py-2 px-3 bg-red-50 rounded-lg">
+                      {passwordError}
+                    </div>
+                  )}
+                </div>
+                
+                <div className="mt-6 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowChangePassword(false)}
+                    disabled={isChangingPassword}
+                    className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-gray-100 rounded-xl transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isChangingPassword}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-500 hover:bg-blue-600 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isChangingPassword ? 'Changing...' : 'Change Password'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
       )}
     </nav>
   );
