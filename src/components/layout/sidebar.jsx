@@ -1,20 +1,33 @@
 "use client";
 
-import { Settings, HelpCircle, Users, PlusCircle } from "lucide-react";
+import {
+  Settings,
+  HelpCircle,
+  Users,
+  PlusCircle,
+  ChevronDown,
+  ChevronUp,
+  Briefcase,
+  ListChecks,
+} from "lucide-react";
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 const sidebarItems = [
-  { name: "Dashboard", href: "/dashboard", isActive: true },
+  { name: "Dashboard", href: "/dashboard", icon: null },
 ];
 
 export default function Sidebar({ isOpen }) {
   const { data: session } = useSession();
   const user = session?.user;
+  const pathname = usePathname();
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   return (
     <>
-      {/* Overlay for mobile screens */}
+      {/* Overlay for mobile */}
       <div
         className={clsx(
           "fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity duration-300 lg:hidden",
@@ -25,7 +38,7 @@ export default function Sidebar({ isOpen }) {
         )}
       />
 
-      {/* Sidebar Panel */}
+      {/* Sidebar */}
       <aside
         className={clsx(
           "fixed z-40 top-0 left-0 h-full w-72 bg-white border-r border-gray-200 shadow-xl transform transition-transform duration-300",
@@ -43,7 +56,7 @@ export default function Sidebar({ isOpen }) {
           </span>
         </div>
 
-        {/* Navigation Items */}
+        {/* Navigation */}
         <nav className="flex-1 px-4 space-y-1">
           {sidebarItems.map((item, index) => (
             <a
@@ -51,12 +64,9 @@ export default function Sidebar({ isOpen }) {
               href={item.href}
               className={clsx(
                 "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-                {
-                  "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25":
-                    item.isActive,
-                  "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105":
-                    !item.isActive,
-                }
+                pathname === item.href
+                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
               )}
             >
               <span className="text-lg mr-3">{item.icon}</span>
@@ -64,60 +74,101 @@ export default function Sidebar({ isOpen }) {
             </a>
           ))}
 
-          {/* Admin-only: User Creation */}
+          {/* Admin-only: Users Dropdown */}
           {user?.role === "Admin" && (
-            <a
-              href="/UserCreation"
-              className="flex items-center px-7 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
-            >
-              <span className="flex-1">User Creation</span>
-            </a>
-          )}
-          {/* Admin-only: Manage Users */}
-          {user?.role === "Admin" && (
-            <a
-              href="/manageusers"
-              className="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
-            >
-              <Users className="h-4 w-4 mr-3" />
-              <span className="flex-1">Manage Users</span>
-            </a>
-          )}
-                    {/* Manager-only: Create Task */}
-          {(user?.role === "Manager" || user?.role === "Admin") && (
-            <a
-              href="/Projects"
-              className="flex items-center px-7 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
-            >
-              <span className="flex-1">Project</span>
-            </a>
+            <div>
+              <button
+                onClick={() => setShowUserMenu(!showUserMenu)}
+                className="flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
+              >
+                <Users className="h-4 w-4 mr-3" />
+                <span className="flex-1 text-left">Users</span>
+                {showUserMenu ? (
+                  <ChevronUp className="h-4 w-4 text-slate-500" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-slate-500" />
+                )}
+              </button>
+
+              {showUserMenu && (
+                <div className="ml-8 space-y-1 mt-1">
+                  <a
+                    href="/manageusers"
+                    className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-gray-100 hover:text-slate-800 transition-all duration-150"
+                  >
+                    Manage Users
+                  </a>
+                  <a
+                    href="/approveusers"
+                    className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-gray-100 hover:text-slate-800 transition-all duration-150"
+                  >
+                    Approve Users
+                  </a>
+                  <a
+                    href="/UserCreation"
+                    className="block px-3 py-2 text-sm text-slate-700 rounded-lg hover:bg-gray-100 hover:text-slate-800 transition-all duration-150"
+                  >
+                    Create User
+                  </a>
+                </div>
+              )}
+            </div>
           )}
 
-                    {/* Manager-only: Create Task */}
-          {(user?.role === "Manager" || user?.role === "Admin") && (
-            <a
-              href="/TaskTable"
-              className="flex items-center px-7 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
-            >
-              <span className="flex-1">My Tasks</span>
-            </a>
-          )}
+          {/* Everyone: Projects */}
+          <a
+            href="/Projects"
+            className={clsx(
+              "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+              pathname === "/Projects"
+                ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+            )}
+          >
+            <Briefcase className="h-4 w-4 mr-3" />
+            <span className="flex-1">Projects</span>
+          </a>
 
-          {/* Manager-only: Create Task */}
+          {/* Everyone: My Tasks */}
+          <a
+            href="/TaskTable"
+            className={clsx(
+              "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+              pathname === "/TaskTable"
+                ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+            )}
+          >
+            <ListChecks className="h-4 w-4 mr-3" />
+            <span className="flex-1">My Tasks</span>
+          </a>
+
+          {/* Manager & Admin only: Create Task */}
           {(user?.role === "Manager" || user?.role === "Admin") && (
             <a
               href="/createtask"
-              className="flex items-center px-4 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
+              className={clsx(
+                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                pathname === "/createtask"
+                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+              )}
             >
               <PlusCircle className="h-4 w-4 mr-3" />
               <span className="flex-1">Create Task</span>
             </a>
           )}
-          {/* editor only: assigned task */}
+
+          {/* Editor-only: Assigned Tasks */}
           {user?.role === "Editor" && (
             <a
               href="/EditorTask"
-              className="flex items-center px-7 py-3 text-sm font-medium rounded-xl text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105 transition-all duration-200"
+              className={clsx(
+                "flex items-center px-7 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                pathname === "/EditorTask"
+                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+              )}
             >
               <span className="flex-1">Tasks</span>
             </a>
