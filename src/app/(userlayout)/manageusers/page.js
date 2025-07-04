@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 export default function ManageUsersPage() {
   const { data: session, status } = useSession();
@@ -11,6 +11,8 @@ export default function ManageUsersPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchField, setSearchField] = useState('name'); // 'name', 'email', or 'role'
+  const [processing, setProcessing] = useState(false);
+  const searchInputRef = useRef(null);
 
   const roles = ['Manager', 'Editor', 'Reviewer']; // Admin not editable
 
@@ -31,8 +33,10 @@ export default function ManageUsersPage() {
   }, []);
 
   const handleUserUpdate = async (userId, updatedUser) => {
+    setProcessing(true);
     try {
-      const res = await fetch(`/api/users/${userId}/role`, {
+const res = await fetch(`/api/users/${userId}/role`, {
+
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedUser),
@@ -44,42 +48,71 @@ export default function ManageUsersPage() {
 
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === userId ? { ...u, ...updated, updatedRole: undefined } : u
+          u.id === userId ? { ...u, ...updated, updatedRole: undefined, password: '' } : u
         )
       );
 
       // Toast notification
-      const notification = document.createElement('div');
-      notification.className = 'fixed top-20 right-4 bg-black text-white px-4 py-2 rounded-md shadow-lg flex items-center animate-fade-in z-50 border border-gray-200';
-      notification.innerHTML = `
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        User updated successfully
-      `;
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        notification.classList.remove('animate-fade-in');
-        notification.classList.add('animate-fade-out');
-        setTimeout(() => notification.remove(), 300);
-      }, 3000);
+      showNotification('User updated successfully', true);
     } catch (err) {
       console.error(err);
-      const notification = document.createElement('div');
-      notification.className = 'fixed top-20 right-4 bg-black text-white px-4 py-2 rounded-md shadow-lg flex items-center animate-fade-in z-50 border border-gray-200';
-      notification.innerHTML = `
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-        Error updating user
-      `;
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        notification.classList.remove('animate-fade-in');
-        notification.classList.add('animate-fade-out');
-        setTimeout(() => notification.remove(), 300);
-      }, 3000);
+      showNotification('Error updating user', false);
+    } finally {
+      setProcessing(false);
     }
+  };
+
+  const handleUserDelete = async (userId) => {
+    if (!confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+      return;
+    }
+
+    setProcessing(true);
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Delete failed');
+
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      showNotification('User deleted successfully', true);
+    } catch (err) {
+      console.error(err);
+      showNotification('Error deleting user', false);
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const showNotification = (message, isSuccess) => {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-20 right-4 ${isSuccess ? 'bg-green-600' : 'bg-red-600'} text-white px-4 py-2 rounded-md shadow-lg flex items-center animate-fade-in z-50 border border-gray-200`;
+    notification.innerHTML = `
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${isSuccess ? 'M5 13l4 4L19 7' : 'M6 18L18 6M6 6l12 12'}"></path>
+      </svg>
+      ${message}
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => {
+      notification.classList.remove('animate-fade-in');
+      notification.classList.add('animate-fade-out');
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+    searchInputRef.current.focus();
+  };
+
+  const togglePasswordVisibility = (e) => {
+    const input = e.currentTarget.previousElementSibling;
+    const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+    input.setAttribute('type', type);
+    e.currentTarget.querySelector('svg').classList.toggle('text-gray-400');
+    e.currentTarget.querySelector('svg').classList.toggle('text-gray-600');
   };
 
   if (status === 'loading' || loading) return (
@@ -194,46 +227,80 @@ export default function ManageUsersPage() {
                       {u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Never'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      {u.role === 'Admin' ? (
-                        <span className="text-gray-400 text-xs">Fixed role</span>
-                      ) : (
-                        <div className="flex flex-col space-y-2">
-                          <div className="flex items-center">
-                            <select
-                              className="border border-gray-200 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-black w-full"
-                              value={u.updatedRole || u.role}
-                              onChange={(e) => {
-                                const newRole = e.target.value;
-                                setUsers((prev) => prev.map((usr) => usr.id === u.id ? { ...usr, updatedRole: newRole } : usr));
-                              }}
-                            >
-                              {roles.map((r) => (
-                                <option key={r} value={r}>{r}</option>
-                              ))}
-                            </select>
-                          </div>
-                          <div className="relative">
-                            <input
-                              type="password"
-                              placeholder="New Password"
-                              onChange={(e) => setUsers((prev) => prev.map((usr) => usr.id === u.id ? { ...usr, password: e.target.value } : usr))}
-                              className="border border-gray-200 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-black w-full"
-                            />
-                          </div>
-                          <button
-                            onClick={() => handleUserUpdate(u.id, {
-                              name: u.name,
-                              email: u.email,
-                              role: u.updatedRole || u.role,
-                              ...(u.password && { password: u.password })
-                            })}
-                            className="bg-black hover:bg-gray-800 text-white px-3 py-1.5 rounded-md text-sm transition-colors duration-200 shadow-sm"
-                          >
-                            Save Changes
-                          </button>
-                        </div>
-                      )}
-                    </td>
+  {u.role === 'Admin' ? (
+    <span className="text-gray-400 text-xs">Fixed role</span>
+  ) : (
+    <div className="flex flex-col space-y-2">
+      <div className="flex items-center">
+        <select
+          className="border border-gray-200 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-black w-full"
+          value={u.updatedRole || u.role}
+          onChange={(e) => {
+            const newRole = e.target.value;
+            setUsers((prev) => prev.map((usr) => usr.id === u.id ? { ...usr, updatedRole: newRole } : usr));
+          }}
+        >
+          {roles.map((r) => (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+      </div>
+      <div className="relative flex items-center">
+        <input
+          type="password"
+          placeholder="New Password"
+          value={u.password || ''}
+          onChange={(e) => setUsers((prev) => prev.map((usr) => usr.id === u.id ? { ...usr, password: e.target.value } : usr))}
+          className="border border-gray-200 rounded-md px-3 py-1 text-sm focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-black w-full"
+        />
+        <button 
+          onClick={togglePasswordVisibility}
+          className="absolute right-2 text-gray-400 hover:text-gray-600 focus:outline-none"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+        </button>
+      </div>
+      <button
+        onClick={() => handleUserUpdate(u.id, {
+          name: u.name,
+          email: u.email,
+          role: u.updatedRole || u.role,
+          ...(u.password && { password: u.password })
+        })}
+        disabled={processing}
+        className={`bg-black hover:bg-gray-800 text-white px-3 py-1.5 rounded-md text-sm transition-colors duration-200 shadow-sm flex items-center justify-center ${processing ? 'opacity-70 cursor-not-allowed' : ''}`}
+      >
+        {processing ? (
+          <>
+            <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Saving...
+          </>
+        ) : 'Save Changes'}
+      </button>
+    </div>
+  )}
+</td>
+<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+  {u.role !== 'Admin' && (
+    <button
+      onClick={() => handleUserDelete(u.id)}
+      disabled={processing}
+      className="text-red-600 hover:text-red-900 flex items-center focus:outline-none"
+      title="Delete User"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+      <span className="sr-only">Delete User</span>
+    </button>
+  )}
+</td>
                   </tr>
                 ))}
               </tbody>
@@ -260,12 +327,23 @@ export default function ManageUsersPage() {
                 </svg>
               </div>
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search users..."
-                className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-black sm:text-sm"
+                className="block w-full pl-10 pr-10 py-2 border border-gray-200 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-300 focus:border-black sm:text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
+              {searchTerm && (
+                <button
+                  onClick={clearSearch}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
+                >
+                  <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              )}
             </div>
             <div className="flex-shrink-0">
               <select
