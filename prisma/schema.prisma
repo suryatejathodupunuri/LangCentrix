@@ -88,15 +88,6 @@ model Task {
   updatedAt          DateTime @updatedAt
 }
 
-model Project {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  name         String   
-  description  String?
-  clientName   String?
-  managerName  String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
 model SignupRequest {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
@@ -104,6 +95,35 @@ model SignupRequest {
   password  String
   createdAt DateTime @default(now())
 }
+model Client {
+  id        String           @id @default(auto()) @map("_id") @db.ObjectId
+  name      String
+  email     String
+  phone     String
+  address   String
+  projects  ClientProject[]  @relation("ClientToProject_client")
+}
 
+model Project {
+  id           String           @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  description  String?
+  clientName   String?
+  managerName  String?
+  startDate    DateTime?
+  endDate      DateTime?
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  clients      ClientProject[]  @relation("ClientToProject_project")
+}
+
+model ClientProject {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  clientId   String   @db.ObjectId
+  projectId  String   @db.ObjectId
+
+  client     Client   @relation(fields: [clientId], references: [id], name: "ClientToProject_client")
+  project    Project  @relation(fields: [projectId], references: [id], name: "ClientToProject_project")
+}
 
 

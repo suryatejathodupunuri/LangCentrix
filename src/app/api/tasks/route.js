@@ -91,7 +91,7 @@ export async function POST(req) {
         createdBy,
         createdByRole,
         sourceFile: sourceFileName,
-        currentStatus: "Created",
+        currentStatus: "Assigned",
       },
     });
 

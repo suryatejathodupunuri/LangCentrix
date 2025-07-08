@@ -47,7 +47,7 @@ export default function EditorDashboard() {
     date ? format(new Date(date), "dd-MMM-yyyy hh:mm a") : "N/A";
 
   return (
-    <Card className="p-2  shadow-lg bg-gray-100 w-full">
+    <Card className="p-2 mt-16 shadow-lg bg-gray-100 w-full">
       <h2 className="text-xl font-bold mb-4">My Tasks</h2>
       <Table className="w-full text-black border-separate border-spacing-y-3">
         <TableHeader>

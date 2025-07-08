@@ -30,7 +30,7 @@ export default function TaskForm() {
     domain: "general",
   });
   const [userEmails, setUserEmails] = useState([]);
-  const [projectNames, setProjectNames] = useState([]);
+  const [projects, setProjects] = useState([]);
 
   // Fetch user emails when component mounts
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function TaskForm() {
         // Fetch project names
         const projectRes = await fetch("/api/projects");
         const projectData = await projectRes.json();
-        setProjectNames(Array.isArray(projectData) ? projectData : []);
+        setProjects(Array.isArray(projectData) ? projectData : []);
       } catch (error) {
         console.error("Error fetching emails or projects:", error);
       }
@@ -95,25 +95,27 @@ export default function TaskForm() {
         <h1 className="text-2xl font-bold  mb-6 text-gray-800">Create Task</h1>
 
         {/* Project */}
-        <div className="mb-4">
-        <Select
-          value={formData.project}
-          onValueChange={(value) =>
-            setFormData({ ...formData, project: value })
-          }
-        >
-          <SelectTrigger className="w-full text-gray-600">
-            <SelectValue placeholder="Select a project" />
-          </SelectTrigger>
-          <SelectContent className="bg-gray-200 text-gray-700">
-            {projectNames.map((project) => (
-              <SelectItem key={project.id} value={project.name}>
-                {project.name}  
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        </div>
+<div className="mb-4">
+  <Label className="text-gray-600">Project</Label>
+  <Select
+    value={formData.projectId}
+    onValueChange={(value) =>
+      setFormData((prev) => ({ ...prev, projectId: value }))
+    }
+  >
+    <SelectTrigger className="w-full text-gray-600">
+      <SelectValue placeholder="Select a project" />
+    </SelectTrigger>
+    <SelectContent className="bg-gray-200 text-gray-700">
+      {projects.map((project) => (
+        <SelectItem key={project.id} value={project.id}>
+          {project.name}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
+
 
         {/* Task Type */}
         <div className="mb-4">

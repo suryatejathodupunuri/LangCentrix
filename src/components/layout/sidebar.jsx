@@ -10,7 +10,8 @@ import {
   Briefcase,
   ListChecks,
   LayoutDashboard,
-  ListTodo
+  ListTodo,
+  Trash2
 } from "lucide-react";
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
@@ -146,16 +147,16 @@ export default function Sidebar({ isOpen }) {
           {/* Projects - Only for Admin & Manager */}
           {(user?.role === "Admin" || user?.role === "Manager") && (
             <a
-              href="/Projects"
+              href="/clients"
               className={clsx(
                 "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-                pathname === "/Projects"
+                pathname === "/clients"
                   ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
                   : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
               )}
             >
-              <Briefcase className="h-4 w-4 mr-3" />
-              <span className="flex-1">Projects</span>
+              <Users className="w-4 h-4 mr-3" />
+              <span className="flex-1">Clients</span>
             </a>
           )}
 
@@ -190,7 +191,21 @@ export default function Sidebar({ isOpen }) {
               <span className="flex-1">Create Task</span>
             </a>
           )}
-
+          {/* Manager & Admin only:deleted-task */}
+          {(user?.role === "Admin" || user?.role === "Manager") && (
+            <a
+              href="/deleted-task"
+              className={clsx(
+                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                pathname === "/deleted-task"
+                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+              )}
+            >
+              <Trash2 className="w-4 h-4 mr-3" />
+              <span className="flex-1">Deleted Task</span>
+            </a>
+          )}
           {/* Editor-only: Assigned Tasks */}
           {user?.role === "Editor" && (
             <a
