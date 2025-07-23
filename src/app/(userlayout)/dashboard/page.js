@@ -1,12 +1,14 @@
-'use client';
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth-config";
 
-import CONFIG from "../../../../config";
+export default async function DashboardPage() {
+  const session = await getServerSession(authOptions);
+  const user = session?.user;
 
-export default function DashboardPage() {
   return (
-    <div className="text-center">
+    <div className="flex flex-col justify-center min-h-[calc(100vh-4rem)] p-6 text-center">
       <h1 className="text-4xl font-bold text-blue-400 leading-tight">
-        Welcome to {CONFIG.APP_NAME} Dashboard
+        Welcome back, {user?.name} !
       </h1>
     </div>
   );

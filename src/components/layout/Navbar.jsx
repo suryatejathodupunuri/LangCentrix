@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { User, ChevronDown, LogOut, Menu, Key } from "lucide-react";
+import { User, ChevronDown, LogOut, Menu, Key, ChevronLeft, ChevronRight  } from "lucide-react";
 import CONFIG from '../../../config.js';
 
-export default function Navbar({ toggleSidebar }) {
+export default function Navbar({isOpen, toggleSidebar }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
@@ -17,6 +17,7 @@ export default function Navbar({ toggleSidebar }) {
   const [passwordError, setPasswordError] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const { data: session } = useSession();
+  const [hovered, setHovered] = useState(false);
 
   const userData = {
     name: session?.user?.name || "User",
@@ -96,16 +97,27 @@ export default function Navbar({ toggleSidebar }) {
 
   return (
     <nav className="bg-white border-b border-gray-200 shadow-sm fixed w-full z-50">
-      <div className="flex items-center justify-between h-20 px-6">
+      
+      <div className="flex items-center justify-between h-20 px-6 -ml-4">
         {/* Left Section */}
-        <div className="flex items-center space-x-5">
+        <div className="flex items-center space-x-3">
           <button
-            onClick={toggleSidebar}
-            className="lg:hidden p-3 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 hover:shadow-md"
-          >
-            <Menu className="h-7 w-7 text-gray-700" />
-          </button>
-          <h2 className="text-2xl font-bold text-blue-400 tracking-tight">
+        onClick={toggleSidebar}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-105 hover:shadow-md"
+      >
+        {hovered ? (
+          isOpen ? (
+            <ChevronLeft className="h-7 w-7 text-gray-700" />
+          ) : (
+            <ChevronRight className="h-7 w-7 text-gray-700" />
+          )
+        ) : (
+          <Menu className="h-7 w-7 text-gray-700" />
+        )}
+      </button>
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] bg-clip-text text-transparent tracking-tight">
             {CONFIG.APP_NAME}
           </h2>
         </div>
@@ -117,8 +129,8 @@ export default function Navbar({ toggleSidebar }) {
             className="flex items-center space-x-4 p-3 rounded-xl hover:bg-gray-50 transition-all duration-200 hover:shadow-lg border border-transparent hover:border-gray-200"
             disabled={isLoggingOut}
           >
-            <div className="w-11 h-11 bg-gradient-to-br from-black to-gray-800 rounded-full flex items-center justify-center shadow-lg ring-2 ring-gray-300">
-              <User className="h-5 w-5 text-white" />
+            <div className="w-11 h-11 bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] rounded-full flex items-center justify-center shadow-lg ring-2 ring-gray-300">
+              <User className="h-5 w-5 text-white " />
             </div>
             <div className="hidden sm:block text-left">
               <p className="text-sm font-semibold text-slate-800">{userData.name}</p>

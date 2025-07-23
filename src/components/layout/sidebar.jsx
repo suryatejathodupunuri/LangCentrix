@@ -7,11 +7,11 @@ import {
   PlusCircle,
   ChevronDown,
   ChevronUp,
-  Briefcase,
   ListChecks,
   LayoutDashboard,
   ListTodo,
-  Trash2
+  Trash2,
+  Building,
 } from "lucide-react";
 import clsx from "clsx";
 import { useSession } from "next-auth/react";
@@ -19,7 +19,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 const sidebarItems = [
-  { name: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4 mr-3" /> },
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
 ];
 
 export default function Sidebar({ isOpen }) {
@@ -28,10 +28,9 @@ export default function Sidebar({ isOpen }) {
   const pathname = usePathname();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
-  // Check if current path is under users dropdown
-  const isUsersSubMenuActive = 
-    pathname === "/manageusers" || 
-    pathname === "/approveusers" || 
+  const isUsersSubMenuActive =
+    pathname === "/manageusers" ||
+    pathname === "/approveusers" ||
     pathname === "/UserCreation";
 
   return (
@@ -50,36 +49,39 @@ export default function Sidebar({ isOpen }) {
       {/* Sidebar */}
       <aside
         className={clsx(
-          "fixed z-40 top-0 left-0 h-full w-72 bg-white border-r border-gray-200 shadow-xl transform transition-transform duration-300",
-          "lg:transform-none lg:translate-x-0",
-          {
-            "-translate-x-full lg:translate-x-0": !isOpen,
-            "translate-x-0": isOpen,
-          }
+          "fixed z-40 top-0 left-0 h-full bg-white border-r border-gray-200 shadow-xl transition-all duration-300",
+          isOpen ? "w-72" : "w-16"
         )}
       >
         {/* Menu Label */}
-        <div className="px-6 py-6 pt-12">
-          <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
-            Main Menu
-          </span>
-        </div>
+        {/* <div className="px-4 py-6 pt-20">
+          {isOpen && (
+            <span className="text-xs font-semibold text-slate-600 uppercase tracking-wider">
+              Main Menu
+            </span>
+          )}
+        </div> */}
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 space-y-1">
+        <nav className="flex-1 px-2 space-y-1 pt-24">
           {sidebarItems.map((item, index) => (
             <a
               key={index}
               href={item.href}
               className={clsx(
-                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                "group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
                 pathname === item.href
-                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                  ? "bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] text-white shadow-lg shadow-gray-500/25"
                   : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
               )}
             >
-              {item.icon}
-              <span className="flex-1">{item.name}</span>
+              <item.icon className="h-5 w-5" />
+              {isOpen && <span className="ml-3">{item.name}</span>}
+              {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Dashboard
+                </div>
+              )}
             </a>
           ))}
 
@@ -89,53 +91,44 @@ export default function Sidebar({ isOpen }) {
               <button
                 onClick={() => setShowUserMenu(!showUserMenu)}
                 className={clsx(
-                  "flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                  "group relative flex items-center w-full px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
                   isUsersSubMenuActive
-                    ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                    ? "bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] text-white shadow-lg shadow-gray-500/25"
                     : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
                 )}
               >
-                <Users className="h-4 w-4 mr-3" />
-                <span className="flex-1 text-left">Users</span>
-                {showUserMenu ? (
-                  <ChevronUp className="h-4 w-4 text-slate-500" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-slate-500" />
-                )}
+                <Users className="h-5 w-5" />
+                {isOpen && <span className="ml-3 flex-1 text-left">Users</span>}
+                {isOpen &&
+                  (showUserMenu ? (
+                    <ChevronUp className="h-4 w-4" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4" />
+                  ))}
+                  {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Users
+                </div>
+              )}
               </button>
 
-              {showUserMenu && (
+              {showUserMenu && isOpen && (
                 <div className="ml-8 space-y-1 mt-1">
                   <a
                     href="/manageusers"
-                    className={clsx(
-                      "block px-3 py-2 text-sm rounded-lg transition-all duration-150",
-                      pathname === "/manageusers"
-                        ? "bg-gray-800 text-white"
-                        : "text-slate-700 hover:bg-gray-100 hover:text-slate-800"
-                    )}
+                    className="text-slate-700 block px-3 py-2 text-sm rounded-lg hover:bg-gray-100"
                   >
                     Manage Users
                   </a>
                   <a
                     href="/approveusers"
-                    className={clsx(
-                      "block px-3 py-2 text-sm rounded-lg transition-all duration-150",
-                      pathname === "/approveusers"
-                        ? "bg-gray-800 text-white"
-                        : "text-slate-700 hover:bg-gray-100 hover:text-slate-800"
-                    )}
+                    className="text-slate-700 block px-3 py-2 text-sm rounded-lg hover:bg-gray-100"
                   >
                     Approve Users
                   </a>
                   <a
                     href="/UserCreation"
-                    className={clsx(
-                      "block px-3 py-2 text-sm rounded-lg transition-all duration-150",
-                      pathname === "/UserCreation"
-                        ? "bg-gray-800 text-white"
-                        : "text-slate-700 hover:bg-gray-100 hover:text-slate-800"
-                    )}
+                    className="text-slate-700 block px-3 py-2 text-sm rounded-lg hover:bg-gray-100"
                   >
                     Create User
                   </a>
@@ -144,81 +137,98 @@ export default function Sidebar({ isOpen }) {
             </div>
           )}
 
-          {/* Projects - Only for Admin & Manager */}
+          {/* Clients - Only for Admin & Manager */}
           {(user?.role === "Admin" || user?.role === "Manager") && (
-            <a
-              href="/clients"
-              className={clsx(
-                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-                pathname === "/clients"
-                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
-                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+            <>
+              <a
+                href="/clients"
+                className={clsx(
+                  "group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                  pathname === "/clients"
+                    ? "bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] text-white shadow-lg shadow-gray-500/25"
+                    : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+                )}
+              >
+                <Building className="w-5 h-5 text-muted-foreground" />
+                {isOpen && <span className="ml-3">Clients</span>}
+                {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Clients
+                </div>
               )}
-            >
-              <Users className="w-4 h-4 mr-3" />
-              <span className="flex-1">Clients</span>
-            </a>
+              </a>
+              <a
+                href="/TaskTable"
+                className={clsx(
+                  "group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                  pathname === "/TaskTable"
+                    ? "bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] text-white shadow-lg shadow-gray-500/25"
+                    : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+                )}
+              >
+                <ListChecks className="h-5 w-5" />
+                {isOpen && <span className="ml-3">My Tasks</span>}
+                {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  My Tasks
+                </div>
+              )}
+              </a>
+              <a
+                href="/createtask"
+                className={clsx(
+                  "group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                  pathname === "/createtask"
+                    ? "bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] text-white shadow-lg shadow-gray-500/25"
+                    : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+                )}
+              >
+                <PlusCircle className="h-5 w-5" />
+                {isOpen && <span className="ml-3">Create Task</span>}
+                {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Create Task
+                </div>
+              )}
+              </a>
+              <a
+                href="/deleted-task"
+                className={clsx(
+                  "group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                  pathname === "/deleted-task"
+                    ? "bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] text-white shadow-lg shadow-gray-500/25"
+                    : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
+                )}
+              >
+                <Trash2 className="h-5 w-5" />
+                {isOpen && <span className="ml-3">Deleted Task</span>}
+                {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Deleted Task
+                </div>
+              )}
+              </a>
+            </>
           )}
 
-          {/* My Tasks - Only for Admin & Manager */}
-          {(user?.role === "Admin" || user?.role === "Manager") && (
-            <a
-              href="/TaskTable"
-              className={clsx(
-                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-                pathname === "/TaskTable"
-                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
-                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
-              )}
-            >
-              <ListChecks className="h-4 w-4 mr-3" />
-              <span className="flex-1">My Tasks</span>
-            </a>
-          )}
-
-          {/* Manager & Admin only: Create Task */}
-          {(user?.role === "Manager" || user?.role === "Admin") && (
-            <a
-              href="/createtask"
-              className={clsx(
-                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-                pathname === "/createtask"
-                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
-                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
-              )}
-            >
-              <PlusCircle className="h-4 w-4 mr-3" />
-              <span className="flex-1">Create Task</span>
-            </a>
-          )}
-          {/* Manager & Admin only:deleted-task */}
-          {(user?.role === "Admin" || user?.role === "Manager") && (
-            <a
-              href="/deleted-task"
-              className={clsx(
-                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
-                pathname === "/deleted-task"
-                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
-                  : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
-              )}
-            >
-              <Trash2 className="w-4 h-4 mr-3" />
-              <span className="flex-1">Deleted Task</span>
-            </a>
-          )}
           {/* Editor-only: Assigned Tasks */}
           {user?.role === "Editor" && (
             <a
               href="/EditorTask"
               className={clsx(
-                "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
+                "group relative flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all duration-200",
                 pathname === "/EditorTask"
-                  ? "bg-gradient-to-r from-black to-gray-800 text-white shadow-lg shadow-gray-500/25"
+                  ? "bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] text-white shadow-lg shadow-gray-500/25"
                   : "text-slate-700 hover:bg-gray-100 hover:text-slate-800 hover:scale-105"
               )}
             >
-              <ListTodo className="h-4 w-4 mr-3" />
-              <span className="flex-1">Tasks</span>
+              <ListTodo className="h-5 w-5" />
+              {isOpen && <span className="ml-3">Tasks</span>}
+              {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Tasks
+                </div>
+              )}
             </a>
           )}
         </nav>
@@ -230,17 +240,33 @@ export default function Sidebar({ isOpen }) {
         <div className="border-t border-gray-100 p-4 space-y-1">
           <a
             href="#"
-            className="flex items-center px-3 py-2.5 text-sm text-slate-700 rounded-lg hover:bg-gray-100 transition-colors duration-150"
+            className={clsx(
+              "group relative flex items-center text-slate-700 text-sm rounded-lg transition-colors duration-150",
+              isOpen ? "px-3 py-2.5" : "justify-center p-1.5"
+            )}
           >
-            <Settings className="h-4 w-4 mr-3 text-slate-500" />
-            Settings
+            <Settings className="h-5 w-5 text-slate-700" />
+            {isOpen && <span className="ml-3">Settings</span>}
+            {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Settings
+                </div>
+              )}
           </a>
           <a
             href="#"
-            className="flex items-center px-3 py-2.5 text-sm text-slate-700 rounded-lg hover:bg-gray-100 transition-colors duration-150"
+            className={clsx(
+              "group relative flex items-center text-sm text-slate-700 rounded-lg transition-colors duration-150",
+              isOpen ? "px-3 py-2.5" : "justify-center p-1.5"
+            )}
           >
-            <HelpCircle className="h-4 w-4 mr-3 text-slate-500" />
-            Help & Support
+            <HelpCircle className="h-5 w-5 text-slate-700" />
+            {isOpen && <span className="ml-3">Help & Support</span>}
+            {!isOpen && (
+                <div className="absolute left-16 top-1/2 -translate-y-1/2 bg-black text-white text-xs px-2 py-1 rounded-md whitespace-nowrap z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  Help & Support
+                </div>
+              )}
           </a>
         </div>
       </aside>

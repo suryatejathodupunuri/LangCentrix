@@ -16,7 +16,7 @@ import {
 
 export default function TaskForm() {
   const [formData, setFormData] = useState({
-    project: "",
+    projectId: "",
     taskType: "",
     assignTo: "",
     taskLabel: "",
@@ -43,8 +43,8 @@ export default function TaskForm() {
 
         // Fetch project names
         const projectRes = await fetch("/api/projects");
-        const projectData = await projectRes.json();
-        setProjects(Array.isArray(projectData) ? projectData : []);
+        const data = await projectRes.json();
+        setProjects(Array.isArray(data.projects) ? data.projects : []);
       } catch (error) {
         console.error("Error fetching emails or projects:", error);
       }
@@ -87,71 +87,99 @@ export default function TaskForm() {
   };
 
   return (
-    <div className="flex p-8">
+    <div className="flex p-8 justify-center items-center">
       <form
         onSubmit={handleSubmit}
-        className="bg-white shadow-lg rounded-lg p-12 w-3xl max-w-5xl overflow-auto ml-14 mt-10"
+        className="bg-white/95 shadow-2xl rounded-2xl p-12 w-3xl max-w-5xl overflow-auto ml-14 mt-10 backdrop-blur-xl border-0 "
       >
-        <h1 className="text-2xl font-bold  mb-6 text-gray-800">Create Task</h1>
+        <h1 className="text-3xl mb-8 font-bold text-[#0F4C75]">Create Task</h1>
 
         {/* Project */}
-<div className="mb-4">
-  <Label className="text-gray-600">Project</Label>
-  <Select
-    value={formData.projectId}
-    onValueChange={(value) =>
-      setFormData((prev) => ({ ...prev, projectId: value }))
-    }
-  >
-    <SelectTrigger className="w-full text-gray-600">
-      <SelectValue placeholder="Select a project" />
-    </SelectTrigger>
-    <SelectContent className="bg-gray-200 text-gray-700">
-      {projects.map((project) => (
-        <SelectItem key={project.id} value={project.id}>
-          {project.name}
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-</div>
-
+        <div className="mb-4">
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Project
+          </Label>
+          <Select
+            value={formData.projectId}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, projectId: value }))
+            }
+          >
+            <SelectTrigger className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50">
+              <SelectValue placeholder="Select a project" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-slate-200 rounded-lg">
+              {projects.map((project) => (
+                <SelectItem
+                  key={project.id}
+                  value={project.id}
+                  className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+                >
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Task Type */}
         <div className="mb-4">
-          <Label className="text-gray-600">Task Type</Label>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Task Type
+          </Label>
           <Select
             value={formData.taskType}
             onValueChange={(value) =>
               setFormData((prev) => ({ ...prev, taskType: value }))
             }
           >
-            <SelectTrigger className="w-full text-gray-600">
+            <SelectTrigger className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50">
               <SelectValue placeholder="Select task type" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-200 text-gray-700">
-              <SelectItem value="Translation">Translation</SelectItem>
-              <SelectItem value="NER">NER</SelectItem>
-              <SelectItem value="Headline">Headline</SelectItem>
+            <SelectContent className="bg-white border-slate-200 rounded-lg">
+              <SelectItem
+                value="Translation"
+                className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+              >
+                Translation
+              </SelectItem>
+              <SelectItem
+                value="NER"
+                className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+              >
+                NER
+              </SelectItem>
+              <SelectItem
+                value="Headline"
+                className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+              >
+                Headline
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>
 
         {/* Assign To */}
         <div className="mb-4">
-          <Label className="text-gray-600">Assign To (Email)</Label>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Assign To (Email)
+          </Label>
           <Select
             value={formData.assignTo}
             onValueChange={(value) =>
               setFormData((prev) => ({ ...prev, assignTo: value }))
             }
           >
-            <SelectTrigger className="w-full text-gray-600">
+            <SelectTrigger className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50">
               <SelectValue placeholder="Select user email" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-200 text-gray-700">
+            <SelectContent className="bg-white border-slate-200 rounded-lg">
               {userEmails.map((user) => (
-                <SelectItem key={user.email} value={user.email}>
+                <SelectItem
+                  key={user.email}
+                  value={user.email}
+                  className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+                >
                   {user.email}
                 </SelectItem>
               ))}
@@ -161,19 +189,45 @@ export default function TaskForm() {
 
         {/* Task Label */}
         <div className="mb-4">
-          <Label className="text-gray-600">Task Label</Label>
-          <Input
-            name="taskLabel"
-            onChange={handleChange}
-            required
-            className="w-full text-gray-600"
-          />
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Task Label
+          </Label>
+                    <Select
+            value={formData.taskLabel}
+            onValueChange={(value) =>
+              setFormData((prev) => ({ ...prev, taskLabel: value }))
+            }
+          >
+            <SelectTrigger className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50">
+              <SelectValue placeholder="Select task label" />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-slate-200 rounded-lg">
+              <SelectItem
+                value="Editing"
+                className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+              >
+                Editing
+              </SelectItem>
+              <SelectItem
+                value="Review"
+                className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+              >
+                Review
+              </SelectItem>
+              <SelectItem
+                value="Proofread"
+                className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+              >
+                Proofread
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Domain */}
         <div className="mb-4">
-          <Label className="text-gray-600">
-            Domain<span className="text-red-600">*</span>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Domain<span className="text-red-500 ml-1">*</span>
           </Label>
           <Select
             value={formData.domain}
@@ -181,13 +235,17 @@ export default function TaskForm() {
               setFormData((prev) => ({ ...prev, domain: value }))
             }
           >
-            <SelectTrigger className="w-full text-gray-600">
+            <SelectTrigger className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50">
               <SelectValue placeholder="Select domain" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-white border-slate-200 rounded-lg">
               {["news", "science and tech", "general", "governance"].map(
                 (d) => (
-                  <SelectItem key={d} value={d}>
+                  <SelectItem
+                    key={d}
+                    value={d}
+                    className="text-slate-700 hover:bg-sky-50 cursor-pointer capitalize"
+                  >
                     {d}
                   </SelectItem>
                 )
@@ -198,91 +256,117 @@ export default function TaskForm() {
 
         {/* Source File */}
         <div className="mb-4">
-          <Label className="text-gray-600">
-            Source File<span className="text-red-600">*</span>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Source File<span className="text-red-500 ml-1">*</span>
           </Label>
           <Input
             type="file"
             name="sourceFile"
             onChange={handleChange}
             required
-            className="w-full text-gray-600"
+            className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-1 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
           />
         </div>
 
         {/* Second File */}
         {formData.taskType === "Translation" && (
           <div className="mb-4">
-            <Label className="text-gray-600">Second File (Translation)</Label>
+            <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+              Second File (Translation)
+            </Label>
             <Input
               type="file"
               name="secondFile"
               onChange={handleChange}
               required
-              className="w-full text-gray-600"
+              className="w-full  border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-1 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
             />
           </div>
         )}
 
         {/* Source Lang */}
         <div className="mb-4">
-          <Label className="text-gray-600">Language - Source</Label>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Language - Source
+          </Label>
           <Input
             name="sourceLang"
             onChange={handleChange}
-            className="w-full text-gray-600"
+            className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
+            placeholder="Enter source language"
           />
         </div>
 
         {/* Target Lang */}
         <div className="mb-4">
-          <Label className="text-gray-600">Language - Target</Label>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Language - Target
+          </Label>
           <Input
             name="targetLang"
             onChange={handleChange}
-            className="w-full text-gray-600"
+            className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
+            placeholder="Enter target language"
           />
         </div>
 
         {/* Description */}
         <div className="mb-4">
-          <Label className="text-gray-600">
-            Description<span className="text-red-600">*</span>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Description<span className="text-red-500 ml-1">*</span>
           </Label>
           <Textarea
             name="description"
             onChange={handleChange}
             required
-            className="w-full text-gray-600"
+            className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
+            placeholder="Enter task description..."
           />
         </div>
 
         {/* Expected Finish Date */}
         <div className="mb-4">
-          <Label className="text-gray-600">Expected Finish Date</Label>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Expected Finish Date
+          </Label>
           <Input
             type="date"
             name="expectedFinishDate"
             onChange={handleChange}
-            className="w-full text-gray-600"
+            className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
           />
         </div>
 
         {/* Priority */}
         <div className="mb-4">
-          <Label className="text-gray-600">Priority</Label>
+          <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">
+            Priority
+          </Label>
           <Select
             value={formData.priority}
             onValueChange={(value) =>
               setFormData((prev) => ({ ...prev, priority: value }))
             }
           >
-            <SelectTrigger className="w-full text-gray-600">
+            <SelectTrigger className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50">
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
-            <SelectContent className="bg-gray-200 text-gray-700">
+            <SelectContent className="bg-white border-slate-200 rounded-lg">
               {["High", "Medium", "Low"].map((p) => (
-                <SelectItem key={p} value={p}>
+                <SelectItem
+                  key={p}
+                  value={p}
+                  className="text-slate-700 hover:bg-sky-50 cursor-pointer"
+                >
+                  <span
+                    className={`inline-block w-3 h-3 rounded-full mr-2 ${
+                      p === "High"
+                        ? "bg-red-500"
+                        : p === "Medium"
+                        ? "bg-yellow-500"
+                        : "bg-green-500"
+                    }`}
+                  ></span>
                   {p}
                 </SelectItem>
               ))}
@@ -293,7 +377,7 @@ export default function TaskForm() {
         <div className="flex justify-center">
           <Button
             type="submit"
-            className="bg-black text-white hover:bg-gray-400"
+            className="px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 bg-gradient-to-r from-[#0891B2] to-[#0F4C75] text-white border-0 shadow-lg hover:shadow-xl"
           >
             Create Task
           </Button>

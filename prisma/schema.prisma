@@ -65,7 +65,8 @@ model VerificationToken {
 model Task {
   id                 String   @id @default(auto()) @map("_id") @db.ObjectId
   taskId             String  @unique              
-  project            String?
+  projectId          String?   @db.ObjectId
+  project            Project?  @relation(fields: [projectId], references: [id])
   taskType           String?
   assignTo           String?
   taskLabel          String?
@@ -75,8 +76,11 @@ model Task {
   description        String?
   expectedFinishDate DateTime?
   domain             String?
-  sourceFile         String?
-  secondFile         String?
+  sourceFileName     String?
+  sourceFileContent  Bytes?    
+  secondFileName     String?
+  secondFileContent  Bytes?
+  editedContent      String?
   currentStatus      String?
   modifiedAt         DateTime? @updatedAt
   statusUpdatedAt    DateTime?
@@ -115,6 +119,8 @@ model Project {
   createdAt    DateTime         @default(now())
   updatedAt    DateTime         @updatedAt
   clients      ClientProject[]  @relation("ClientToProject_project")
+
+  tasks Task[]
 }
 
 model ClientProject {

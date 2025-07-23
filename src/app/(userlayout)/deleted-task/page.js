@@ -80,11 +80,11 @@ export default function DeletedTasksPage() {
 
   return (
     <Card className="p-2 w-full shadow-xl mt-2 bg-gray-100 overflow-y-auto">
-      <h1 className="text-2xl font-semibold">Deleted Tasks</h1>
-      <div className="flex gap-4 justify-end -mb-2 mt-2 mr-4">
+      <h1 className="text-2xl font-semibold text-[#0F4C75]">Deleted Tasks</h1>
+      <div className="flex gap-4 justify-end -mb-6 mr-4">
         <Button
           variant="outline"
-          className="p-2 text-gray-600 hover:bg-gray-300"
+          className="p-3 rounded-xl transition-all duration-300 hover:scale-125 bg-gradient-to-r from-[#0891B2]/10 to-[#3282B8]/10 hover:from-[#0891B2]/20 hover:to-[#3282B8]/20 text-[#0F4C75] border border-[#0891B2]/20 shadow-md hover:shadow-lg"
           size="sm"
           onClick={async () => {
             for (const id of selectedIds) {
@@ -93,12 +93,12 @@ export default function DeletedTasksPage() {
           }}
           disabled={selectedIds.length === 0}
         >
-          <RotateCcw className="w-4 h-4 mr-1" />
+          <RotateCcw className="w-4 h-4 mr-1 text-[#3282B8]"/>
           Restore
         </Button>
         <Button
           variant="destructive"
-          className="p-2 text-gray-800 bg-gray-500 hover:bg-gray-300"
+          className="p-2 hover:bg-rose-100  rounded-lg transition-all hover:scale-105 bg-transparent hover:text-red-600 duration-300 bg-gradient-to-r from-[#0891B2]/10 to-[#3282B8]/10 text-[#0F4C75] border border-[#0891B2]/20 shadow-md hover:shadow-lg"
           size="sm"
           onClick={async () => {
             const confirmed = confirm(
@@ -118,7 +118,7 @@ export default function DeletedTasksPage() {
 
       <Table className="w-full text-black border-separate border-spacing-y-3">
         <TableHeader>
-          <TableRow className="text-xs text-gray-700 uppercase bg-white shadow-md rounded-md hover:shadow-lg transition duration-200">
+          <TableRow className="text-xs uppercase bg-[#3282B8] shadow-md rounded-md hover:shadow-lg transition duration-200">
             <TableHead className="text-center py-3"></TableHead>
             {[
               "Task ID",
@@ -131,7 +131,7 @@ export default function DeletedTasksPage() {
               "Assigned To",
               "Modified At",
             ].map((head, i) => (
-              <TableHead key={i} className="text-center px-2 py-4 text-black">
+              <TableHead key={i} className="text-center px-2 py-4 text-white font-semibold">
                 {head}
               </TableHead>
             ))}
@@ -198,9 +198,9 @@ export default function DeletedTasksPage() {
               <TableCell className="text-center break-words py-5">
                 {task.description}
               </TableCell>
-              <TableCell className="text-center break-words py-5">
-                {task.project}
-              </TableCell>
+            <TableCell className="text-center break-words py-5">
+  {task.project?.name || "—"}
+</TableCell>
               <TableCell className="text-center py-5">
                 {task.priority}
               </TableCell>

@@ -78,45 +78,45 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex-1 px-16 py-10 ml-56 mt-20 bg-white text-black">
-      <div className="max-w-2xl">
-        <h1 className="text-2xl font-semibold mb-2">Create New User</h1>
-        <p className="text-sm text-gray-600 mb-8">Add a new user to the system</p>
+    <div className="flex-1 px-16 py-4 mt-20 bg-white/95 max-w-3xl shadow-2xl rounded-2xl ml-68">
+      {/* <div className="max-w-xl "> */}
+        <h1 className="text-2xl font-semibold mb-2 text-[#0F4C75]">Create New User</h1>
+        <p className="text-sm  mb-8 text-[#3282B8]">Add a new user to the system</p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6 ">
           <div>
-            <Label className="text-sm font-medium">Full Name</Label>
+            <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">Full Name</Label>
             <Input
               name="name"
               type="text"
               value={form.name}
               onChange={handleChange}
-              className="w-full mt-1 border border-black text-black bg-white focus:ring-black focus:border-black"
+              className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
               required
             />
           </div>
 
           <div>
-            <Label className="text-sm font-medium">Email</Label>
+            <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">Email</Label>
             <Input
               name="email"
               type="email"
               value={form.email}
               onChange={handleChange}
-              className="w-full mt-1 border border-black text-black bg-white focus:ring-black focus:border-black"
+              className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
               required
             />
           </div>
 
           <div>
-            <Label className="text-sm font-medium">Password</Label>
+            <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">Password</Label>
             <div className="relative">
               <Input
                 name="password"
                 type={showPassword ? "text" : "password"}
                 value={form.password}
                 onChange={handleChange}
-                className="w-full mt-1 border border-black text-black bg-white focus:ring-black focus:border-black pr-10"
+                className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
                 required
               />
               <button
@@ -130,14 +130,14 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <Label className="text-sm font-medium">Confirm Password</Label>
+            <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">Confirm Password</Label>
             <div className="relative">
               <Input
                 name="confirmPassword"
                 type={showConfirmPassword ? "text" : "password"}
                 value={form.confirmPassword}
                 onChange={handleChange}
-                className="w-full mt-1 border border-black text-black bg-white focus:ring-black focus:border-black pr-10"
+                className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
                 required
               />
               <button
@@ -151,33 +151,33 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <Label className="text-sm font-medium">Role</Label>
+            <Label className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider">Role</Label>
             <Select
               value={form.role}
               onValueChange={(value) => setForm({ ...form, role: value })}
             >
-              <SelectTrigger className="w-full mt-1 border border-black text-black bg-white focus:ring-black focus:border-black">
-                <SelectValue placeholder="Select a role" />
+              <SelectTrigger className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50">
+                <SelectValue placeholder="Select a role"/>
               </SelectTrigger>
-              <SelectContent className="bg-white border border-black text-black">
-                <SelectItem value="Admin">Admin</SelectItem>
-                <SelectItem value="Manager">Manager</SelectItem>
-                <SelectItem value="Editor">Editor</SelectItem>
-                <SelectItem value="Reviewer">Reviewer</SelectItem>
+              <SelectContent className="bg-white border-slate-200 rounded-lg">
+                <SelectItem value="Admin" className="text-slate-700 hover:bg-sky-50 cursor-pointer">Admin</SelectItem>
+                <SelectItem value="Manager" className="text-slate-700 hover:bg-sky-50 cursor-pointer">Manager</SelectItem>
+                <SelectItem value="Editor"className="text-slate-700 hover:bg-sky-50 cursor-pointer">Editor</SelectItem>
+                <SelectItem value="Reviewer"className="text-slate-700 hover:bg-sky-50 cursor-pointer">Reviewer</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-2 flex justify-center">
             <button
               type="submit"
-              className="w-full bg-black text-white py-2 rounded-md hover:bg-gray-900 transition"
+              className="px-6 py-3 rounded-xl font-bold transition-all duration-300 hover:scale-105 bg-gradient-to-r from-[#0891B2] to-[#0F4C75] text-white border-0 shadow-lg hover:shadow-xl"
             >
               Create User
             </button>
           </div>
         </form>
-      </div>
+      {/* </div> */}
     </div>
   );
 }

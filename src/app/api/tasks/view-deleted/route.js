@@ -13,6 +13,7 @@ export async function GET(req) {
         skip,
         take: limit,
         orderBy: { updatedAt: "desc" },
+        include: { project: true },
       }),
       prisma.task.count({ where: { Delete_Flag: true } }),
     ]);

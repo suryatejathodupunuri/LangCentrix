@@ -1,23 +1,32 @@
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
-// GET: Fetch all projects with client info
-export async function GET() {
+// GET: Fetch paginated projects with client info
+export async function GET(req) {
   try {
-    const projects = await prisma.project.findMany({
-      include: {
-        clients: {
-          include: {
-            client: true,
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const limit = parseInt(searchParams.get("limit") || "5", 10);
+    const skip = (page - 1) * limit;
+
+    const [projects, total] = await Promise.all([
+      prisma.project.findMany({
+        skip,
+        take: limit,
+        include: {
+          clients: {
+            include: {
+              client: true,
+            },
           },
         },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.project.count(),
+    ]);
 
-    // Flatten response structure for frontend
     const formatted = projects.map((project) => ({
       id: project.id,
       name: project.name,
@@ -29,7 +38,7 @@ export async function GET() {
       }`,
     }));
 
-    return NextResponse.json(formatted);
+    return NextResponse.json({ projects: formatted, total });
   } catch (error) {
     console.error("Error fetching projects:", error);
     return NextResponse.json(

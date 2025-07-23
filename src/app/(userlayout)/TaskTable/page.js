@@ -12,6 +12,8 @@ import {
   ChevronRight,
   Pencil,
   Download,
+  ListChecks,
+  FileText,
 } from "lucide-react";
 import {
   Table,
@@ -67,35 +69,48 @@ export default function TaskTablePage() {
   };
   const formatDateTime = (dateString) => {
     if (!dateString) return "N/A";
-    return format(new Date(dateString), "dd-MMM-yy hh:mm a"); // Date + Time
+    return format(new Date(dateString), "dd-MMM-yy hh:mm a"); 
   };
 
   const fetchTasks = async (pageNumber = 1) => {
-    const res = await fetch(`/api/tasks?page=${pageNumber}&limit=${limit}`);
-    const data = await res.json();
+    try {
+      const res = await fetch(`/api/tasks?page=${pageNumber}&limit=${limit}`);
+      if (!res.ok) throw new Error(`Failed to fetch tasks: ${res.statusText}`);
 
-    // Sort tasks by createdAt DESC (newest first)
-    const sorted = (data.tasks || []).sort(
-      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-    );
+      const data = await res.json();
+      console.log("Fetched tasks data:", data);
 
-    setTasks(sorted);
-    setTotalTasks(data.total || 0);
-    setPage(pageNumber);
+      const sorted = (data.tasks || []).sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      setTasks(sorted);
+      setTotalTasks(data.total || 0);
+      setPage(pageNumber);
+    } catch (error) {
+      console.error("Error fetching tasks:", error.message);
+    }
   };
 
-  // Fetch user emails
   const fetchUsers = async () => {
-    const res = await fetch("/api/users"); // Endpoint to return users
-    const data = await res.json();
-    setUserEmails(data.map((user) => user.email));
+    try {
+      const res = await fetch("/api/users");
+      if (!res.ok) throw new Error(`Failed to fetch users: ${res.statusText}`);
+
+      const data = await res.json();
+      console.log("Fetched user emails:", data);
+
+      setUserEmails(data.map((user) => user.email));
+    } catch (error) {
+      console.error("Error fetching users:", error.message);
+    }
   };
 
-  // Run both fetches on component mount
   useEffect(() => {
     fetchTasks();
     fetchUsers();
   }, []);
+
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -194,17 +209,26 @@ export default function TaskTablePage() {
   };
 
   return (
-    // <div className="flex w-full">
-    //   <main className="w-full">
-    <Card className="p-2 shadow-xl mt-20 bg-gray-100 overflow-y-auto">
-      <div className="flex gap-4 justify-end -mb-4 mt-10 mr-4">
-        <Button
-          variant="ghost"
-          className="p-2 text-gray-600 hover:bg-gray-300"
-          onClick={() => setShowDeleteDialog(true)}
-        >
-          <Trash2 className="w-5 h-5 mr-1" /> Delete
-        </Button>
+    <Card className="w-full shadow-xl mt-20 bg-gray-50 overflow-y-auto rounded-3xl">
+      <div className="bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] p-6 relative overflow-hidden rounded-t-3xl -mt-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4 ">
+          <div className="p-4 rounded-2xl bg-white/20 backdrop-blur-md border border-white/30 shadow-lg mt-4">
+            <ListChecks className="w-4 h-4 text-white"/>
+          </div>
+          <h1 className="text-4xl font-bold text-white mt-4">My Tasks</h1>
+        </div>
+        </div>
+        </div>
+        <div className="flex gap-4 justify-end -mb-8 mt-2 mr-4">
+          <Button
+            variant="ghost"
+            className="p-2 hover:bg-rose-100  rounded-lg transition-all hover:scale-105 bg-transparent hover:text-red-600 duration-300 bg-gradient-to-r from-[#0891B2]/10 to-[#3282B8]/10 text-[#0F4C75] border border-[#0891B2]/20 shadow-md hover:shadow-lg"
+            onClick={() => setShowDeleteDialog(true)}
+          >
+            <Trash2 className="w-5 h-5 mr-1"/> Delete
+          </Button>
+        
       </div>
 
       {/* Edit Dialog */}
@@ -241,7 +265,7 @@ export default function TaskTablePage() {
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  className="text-gray-800"
+                  className="text-slate-800"
                 />
               </div>
 
@@ -257,7 +281,7 @@ export default function TaskTablePage() {
                   <SelectTrigger className="w-full text-gray-800">
                     <SelectValue placeholder="Select priority" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-100 text-black">
+                  <SelectContent className="bg-sky-50 text-slate-800">
                     <SelectItem value="Low">Low</SelectItem>
                     <SelectItem value="Medium">Medium</SelectItem>
                     <SelectItem value="High">High</SelectItem>
@@ -301,7 +325,7 @@ export default function TaskTablePage() {
                   <SelectTrigger className="w-full text-gray-800">
                     <SelectValue placeholder="-- Select user --" />
                   </SelectTrigger>
-                  <SelectContent className="bg-gray-100 text-black">
+                  <SelectContent className="bg-sky-50 text-slate-800">
                     {userEmails.map((email) => (
                       <SelectItem key={email} value={email}>
                         {email}
@@ -366,8 +390,8 @@ export default function TaskTablePage() {
       </Dialog>
       <Table className="w-full text-black border-separate border-spacing-y-3">
         <TableHeader>
-          <TableRow className="text-xs  text-gray-700 uppercase bg-white shadow-md rounded-md hover:shadow-lg transition duration-200">
-            <TableHead className="text-center py-3 "></TableHead>
+          <TableRow className="bg-[#3282B8]  shadow-md rounded-2xl">
+            <TableHead className="text-center py-3 rounded-l-xl"></TableHead>  
             {[
               "Task ID",
               "File Name",
@@ -382,7 +406,7 @@ export default function TaskTablePage() {
             ].map((head, i) => (
               <TableHead
                 key={i}
-                className="text-center px-2 py-4 text-black font-semibold"
+                className="text-center px-4 py-4 font-semibold text-white last:rounded-r-xl"
               >
                 {head}
               </TableHead>
@@ -394,9 +418,10 @@ export default function TaskTablePage() {
           {tasks.map((task) => (
             <TableRow
               key={task.id}
-              className="bg-white shadow-md rounded-md hover:shadow-lg transition duration-200"
+              className="bg-white shadow-md  hover:bg-sky-50 transition duration-200 hover:translate-y-1"
             >
-              <TableCell className="text-center py-3">
+              <TableCell className="text-center py-4 pl-2 pr-4 relative text-[#1E293B] rounded-l-lg overflow-hidden">
+                <div className="absolute left-0 top-0 bottom-0 w-[5px] rounded-l-full bg-[#0891B2] shadow-md shadow-[#0891B2]/30" />
                 <Checkbox
                   checked={selectedIds.includes(task.id)}
                   onCheckedChange={() => toggleCheckbox(task.id)}
@@ -408,7 +433,7 @@ export default function TaskTablePage() {
                   <PopoverTrigger asChild>
                     <Button
                       variant="link"
-                      className="text-blue-600 flex flex-col"
+                      className="text-[#0891B2] flex flex-col"
                     >
                       <span className="font-semibold">
                         {formatDate(task.createdAt)}
@@ -418,22 +443,28 @@ export default function TaskTablePage() {
                       </span>
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-96 max-h-80 overflow-auto p-0 text-sm text-black bg-white border border-gray-300 rounded shadow-2xl">
-                    <Table className="w-full">
-                      <TableBody>
+                  <PopoverContent className="w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+                    <div className="w-96 bg-gradient-to-r from-[#0F4C75] via-[#3282B8] to-[#0891B2] p-4 text-white">
+                    <h3 className="font-bold text-lg flex items-center">
+                <FileText className="w-5 h-5 mr-2" />
+                Task Details
+              </h3>
+              </div>
+                    <Table className="w-full p-4 space-y-3 max-h-80 overflow-auto ">
+                      <TableBody className="group hover:bg-gray-50 rounded-xl p-3 transition-colors duration-200">
                         {[
                           ["Task Label", task.taskLabel],
-                          ["Edited File", task.secondFile],
+                          ["Edited File", task.secondFileName],
                           ["Created By", task.createdByRole],
                           ["Source Lang", task.sourceLang],
                           ["Target Lang", task.targetLang],
                           ["Iteration", task.currentIteration],
                         ].map(([label, value], i) => (
                           <TableRow key={i}>
-                            <TableCell className="font-semibold p-2 text-center">
+                            <TableCell className="text-sm font-medium text-gray-600 mb-1 block">
                               {label}
                             </TableCell>
-                            <TableCell className="p-2 text-center break-words">
+                            <TableCell className="font-semibold text-sm break-words text-[#1E293B]">
                               {value}
                             </TableCell>
                           </TableRow>
@@ -445,15 +476,15 @@ export default function TaskTablePage() {
               </TableCell>
 
               <TableCell className="text-center break-words py-5">
-                {task.sourceFile}
+                {task.sourceFileName}
               </TableCell>
               <TableCell className="text-center break-words py-5">
                 {task.description}
               </TableCell>
-              <TableCell className="text-center  break-words py-5">
-                {task.project}
+              <TableCell className="text-center break-words py-5">
+                {task.project?.name || "—"}
               </TableCell>
-              <TableCell className="text-center py-5 text-gray-700 font-medium">
+              <TableCell className="text-center py-5 text-[#1E293B] font-medium">
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium border ${getPriorityColor(
                     task.priority
@@ -478,10 +509,10 @@ export default function TaskTablePage() {
                 {task.assignTo}
               </TableCell>
 
-              <TableCell className="text-center text-xs text-gray-600">
+              <TableCell className="text-center text-xs text-[#1E293B]">
                 {task.statusUpdatedAt ? (
                   <>
-                    <div className="text-black font-medium">
+                    <div className="text-[#1E293B] font-medium">
                       {formatDateTime(task.statusUpdatedAt)}
                     </div>
                   </>
@@ -496,31 +527,31 @@ export default function TaskTablePage() {
                 )}
               </TableCell>
 
-              <TableCell className="text-center py-5">
+              <TableCell className="text-center py-5 flex justify-center gap-2 rounded-r-2xl">
                 <Button
                   variant="ghost"
                   onClick={() => handleTaskClick(task)}
-                  className="text-gray-600 border-gray-600 hover:bg-gray-100"
+                  className="p-3 rounded-xl transition-all duration-300 hover:scale-125 bg-gradient-to-r from-[#0891B2]/10 to-[#3282B8]/10 hover:from-[#0891B2]/20 hover:to-[#3282B8]/20 text-[#0F4C75] border border-[#0891B2]/20 shadow-md hover:shadow-lg"
                 >
-                  <Pencil className="w-4 h-4 text-gray-500" />
+                  <Pencil className="w-4 h-4 text-[#3282B8]" />
                 </Button>
                 <Button
                   variant="ghost"
                   onClick={() => downloadTaskAsPDF(task)}
-                  className="text-gray-600 border-gray-600 hover:bg-gray-100"
+                  className="p-3 rounded-xl transition-all duration-300 hover:scale-125 bg-gradient-to-r from-[#0891B2]/10 to-[#3282B8]/10 hover:from-[#0891B2]/20 hover:to-[#3282B8]/20 text-[#0F4C75] border border-[#0891B2]/20 shadow-md hover:shadow-lg"
                 >
-                  <Download className="w-4 h-4 text-gray-500" />
+                  <Download className="w-4 h-4 text-[#3282B8]" />
                 </Button>
               </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
-      <div className="flex justify-between items-center mt-4">
+      <div className="flex justify-between items-center mt-8 pt-4 border-t border-[#3282B8]">
         {totalTasks === 0 ? (
           <p className="text-sm text-gray-500 mt-2">No tasks found.</p>
         ) : (
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-[#0F4C75] mt-2">
             Showing {tasks.length} of {totalTasks} task
             {totalTasks !== 1 ? "s" : ""}
           </p>
@@ -530,19 +561,33 @@ export default function TaskTablePage() {
             variant="ghost"
             disabled={page === 1}
             onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            className="flex items-center gap-1 text-gray-700"
+            className={`
+    px-3 py-2 transition-all duration-200 
+    ${
+      page === 1
+        ? "text-gray-400 cursor-not-allowed"
+        : "text-[#9CA3AF] hover:text-[#0891B2]"
+    }
+  `}
           >
             <ChevronLeft className="w-4 h-4" />
           </Button>
 
-          <span className="text-sm text-gray-500">{`Page ${page} of ${Math.ceil(
+          <span className="text-sm font-medium px-3 py-2 rounded-md text-[#0F4C75] bg-[#F0F9FF]">{`Page ${page} of ${Math.ceil(
             totalTasks / limit
           )}`}</span>
           <Button
             variant="ghost"
             disabled={page * limit >= totalTasks}
             onClick={() => setPage((prev) => prev + 1)}
-            className="flex items-center gap-1 text-gray-700"
+            className={`
+    px-3 py-2 transition-all duration-200 
+    ${
+      page * limit >= totalTasks
+        ? "text-gray-400 cursor-not-allowed "
+        : "text-[#9CA3AF] hover:text-[#0891B2]"
+    }
+  `}
           >
             <ChevronRight className="w-4 h-4" />
           </Button>

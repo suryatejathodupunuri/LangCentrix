@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/sidebar';
+import clsx from "clsx";
 
 export default function UserLayout({ children }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
+ const toggleSidebar = () => {
+    setIsSidebarOpen(prev => !prev);
   };
 
   const simulateAction = () => {
@@ -21,15 +22,21 @@ export default function UserLayout({ children }) {
 
   return (
     <div className="flex h-screen flex-col">
+      
       {/* Navbar */}
-      <Navbar toggleSidebar={toggleSidebar} />
+      <Navbar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
 
       <div className="flex flex-1">
         {/* Sidebar */}
         <Sidebar isOpen={isSidebarOpen} />
 
         {/* Main content */}
-        <main className="flex-1 flex items-center justify-center bg-gray-50 p-6 pl-80">
+        <main  className={clsx(
+      "transition-all duration-300 bg-white",
+      isSidebarOpen ? "ml-72" : "ml-16",
+      "w-full p-6"
+    )}>
+      
           {children}
         </main>
       </div>
