@@ -33,9 +33,6 @@ export async function GET(req) {
       description: project.description,
       clientName: project.clients.map((c) => c.client.name).join(", "),
       managerName: project.managerName,
-      Duration: `${project.startDate?.toISOString().slice(0, 10) ?? ""} - ${
-        project.endDate?.toISOString().slice(0, 10) ?? ""
-      }`,
     }));
 
     return NextResponse.json({ projects: formatted, total });
@@ -56,8 +53,6 @@ export async function POST(req) {
       name,
       description,
       managerName,
-      startDate,
-      endDate,
       clientId,
     } = body;
 
@@ -73,8 +68,6 @@ export async function POST(req) {
         name,
         description,
         managerName,
-        startDate: new Date(startDate),
-        endDate: new Date(endDate),
         clients: {
           create: {
             client: {

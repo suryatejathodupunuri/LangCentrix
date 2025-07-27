@@ -278,7 +278,6 @@ export default function TaskForm() {
               type="file"
               name="secondFile"
               onChange={handleChange}
-              required
               className="w-full  border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-1 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
             />
           </div>

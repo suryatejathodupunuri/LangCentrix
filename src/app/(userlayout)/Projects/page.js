@@ -48,14 +48,13 @@ export default function AllProjectsPage() {
   const [page, setPage] = useState(1);
   const limit = 5;
   const [totalProjects, setTotalProjects] = useState(0);
+  const [managers, setManagers] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     id: "",
     name: "",
     description: "",
-    managerName: "",
-    startDate: "",
-    endDate: "",
+    managerEmail: "",
     clientId: "",
   });
 
@@ -75,19 +74,26 @@ export default function AllProjectsPage() {
   }, [page]);
 
   // Fetch Clients (no pagination)
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        const res = await fetch("/api/clients");
-        const data = await res.json();
-        setClients(Array.isArray(data) ? data : []);
-      } catch (err) {
-        console.error("Failed to fetch clients:", err);
-        setClients([]);
-      }
-    };
-    fetchClients();
-  }, []);
+useEffect(() => {
+  const fetchInitialData = async () => {
+    try {
+      // Fetch clients
+      const clientRes = await fetch("/api/clients");
+      const clientData = await clientRes.json();
+      setClients(Array.isArray(clientData) ? clientData : []);
+
+      // Fetch managers
+      const managerRes = await fetch("/api/users/managers");
+      const managerData = await managerRes.json();
+      setManagers(Array.isArray(managerData) ? managerData : []);
+    } catch (err) {
+      console.error("Failed to fetch clients or managers:", err);
+      setClients([]);
+      setManagers([]);
+    }
+  };
+  fetchInitialData();
+}, []);
 
   const handleEdit = (project) => {
     setFormData({
@@ -95,8 +101,6 @@ export default function AllProjectsPage() {
       name: project.name,
       description: project.description,
       managerName: project.managerName,
-      startDate: project.Duration?.split(" - ")[0] || "",
-      endDate: project.Duration?.split(" - ")[1] || "",
       clientId: clients.find((c) => c.name === project.clientName)?.id || "",
     });
     setShowForm(true);
@@ -126,8 +130,6 @@ export default function AllProjectsPage() {
         name: "",
         description: "",
         managerName: "",
-        startDate: "",
-        endDate: "",
         clientId: "",
       });
       setShowForm(false);
@@ -258,57 +260,34 @@ export default function AllProjectsPage() {
               />
             </div>
 
-            <div className="space-y-1">
-              <Label
-                htmlFor="manager"
-                className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider"
-              >
-                Manager Name
-              </Label>
-              <Input
-                id="manager"
-                value={formData.managerName}
-                onChange={(e) =>
-                  setFormData({ ...formData, managerName: e.target.value })
-                }
-                className="border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
-                placeholder="Enter manager name"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label
-                htmlFor="startDate"
-                className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider"
-              >
-                Start Date
-              </Label>
-              <Input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, startDate: e.target.value })
-                }
-                className="border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <Label
-                htmlFor="endDate"
-                className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider"
-              >
-                End Date
-              </Label>
-              <Input
-                type="date"
-                value={formData.endDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, endDate: e.target.value })
-                }
-                className="border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
-              />
-            </div>
+           <div className="space-y-1">
+  <Label
+    htmlFor="manager"
+    className="text-sm font-bold text-[#0F4C75] uppercase tracking-wider"
+  >
+    Manager Email
+  </Label>
+  <Select
+    value={formData.managerEmail}
+    onValueChange={(value) =>
+      setFormData({ ...formData, managerEmail: value })
+    }
+  >
+    <SelectTrigger
+      id="manager"
+      className="w-full border-2 border-[#0891B2]/20 focus:border-[#0891B2] rounded-xl p-4 bg-gradient-to-r from-[#F0F9FF] to-white transition-all duration-300 focus:shadow-lg text-[#1E293B] placeholder-[#1E293B]/50"
+    >
+      <SelectValue placeholder="Select a manager email" />
+    </SelectTrigger>
+    <SelectContent className="bg-slate-50 text-gray-700">
+      {managers.map((manager) => (
+        <SelectItem key={manager.email} value={manager.email}>
+          {manager.email}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</div>
           </div>
 
           <DialogFooter>
@@ -396,8 +375,6 @@ export default function AllProjectsPage() {
                   name: "",
                   description: "",
                   managerName: "",
-                  startDate: "",
-                  endDate: "",
                   clientId: "",
                 });
                 setShowForm(true);
@@ -418,7 +395,6 @@ export default function AllProjectsPage() {
                 "Description",
                 "Client",
                 "Manager",
-                "Duration",
                 "Actions",
               ].map((head, i) => (
                 <TableHead
@@ -448,9 +424,6 @@ export default function AllProjectsPage() {
                 </TableCell>
                 <TableCell className="text-center py-4">
                   {project.managerName}
-                </TableCell>
-                <TableCell className="text-center py-4">
-                  {project.Duration}
                 </TableCell>
                 <TableCell className="text-center py-4">
                   <div className="flex justify-center gap-2">
