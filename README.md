@@ -1,5 +1,4 @@
 
-````markdown
 # 🌐 LangCentrix – Project Management Tool
 
 LangCentrix is a full-stack project management tool built using **Next.js** (frontend + backend), **MongoDB**, and **Prisma ORM**.
@@ -24,13 +23,10 @@ LangCentrix is a full-stack project management tool built using **Next.js** (fro
 ```plaintext
 📧 Email: admin@gmail.com
 🔑 Password: Admin@123
-````
-```plaintext
 📧 Email: editor@gmail.com
 🔑 Password: Editor@123
-````
+```
 
----
 
 ## 🚀 Quick Setup Instructions
 
