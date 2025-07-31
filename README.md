@@ -18,7 +18,7 @@ LangCentrix is a full-stack project management tool built using **Next.js** (fro
 
 ---
 
-## 🔐 Admin Login (for testing)
+## 🔐 Admin Login and Editor Login (for testing)
 
 ```plaintext
 📧 Email: admin@gmail.com
