@@ -35,15 +35,13 @@ export async function GET(req) {
     });
 
     // Convert Buffer (or JSON-encoded string) to string content
-    const tasksWithFileContent = tasks.map((task) => ({
-      ...task,
-      sourceContent: task.sourceFileContent
-        ? Buffer.from(task.sourceFileContent).toString("utf-8")
-        : "",
-      editedContent: task.secondFileContent
-        ? Buffer.from(task.secondFileContent).toString("utf-8")
-        : "",
-    }));
+const tasksWithFileContent = tasks.map((task) => ({
+  ...task,
+  sourceContent: task.sourceFileContent
+    ? Buffer.from(task.sourceFileContent).toString("utf-8")
+    : "",
+  editedContent: task.editedContent || "",
+}));
 
     return NextResponse.json({ total, tasks: tasksWithFileContent });
   } catch (error) {
@@ -149,6 +147,7 @@ export async function PATCH(req) {
     if (!id) {
       return NextResponse.json({ error: "Task ID is required" }, { status: 400 });
     }
+
     const { editedContent, currentStatus } = data;
 
     const updated = await prisma.task.update({

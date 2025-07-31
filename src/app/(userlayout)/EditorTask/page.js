@@ -41,9 +41,9 @@ export default function EditorDashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchTasks(1);
-  }, []);
+useEffect(() => {
+  fetchTasks(page);
+}, [page]);
 
   const getAnnotationRoute = (task) => {
     switch (task.taskType) {

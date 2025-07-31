@@ -91,7 +91,9 @@ export default function TaskTablePage() {
       console.error("Error fetching tasks:", error.message);
     }
   };
-
+useEffect(() => {
+  fetchTasks(page);
+}, [page]);
   const fetchUsers = async () => {
     try {
       const res = await fetch("/api/users");
@@ -106,10 +108,9 @@ export default function TaskTablePage() {
     }
   };
 
-  useEffect(() => {
-    fetchTasks();
-    fetchUsers();
-  }, []);
+useEffect(() => {
+  fetchUsers();
+}, []);
 
 
   const getPriorityColor = (priority) => {
@@ -552,9 +553,9 @@ export default function TaskTablePage() {
           <p className="text-sm text-gray-500 mt-2">No tasks found.</p>
         ) : (
           <p className="text-sm text-[#0F4C75] mt-2">
-            Showing {tasks.length} of {totalTasks} task
-            {totalTasks !== 1 ? "s" : ""}
-          </p>
+  Showing {tasks.length} of {totalTasks} task{totalTasks !== 1 ? "s" : ""}
+</p>
+
         )}
         <div className="flex items-center justify-between mt-4">
           <Button

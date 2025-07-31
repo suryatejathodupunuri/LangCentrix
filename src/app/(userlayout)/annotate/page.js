@@ -42,24 +42,31 @@ export default function AnnotatePage() {
           setTargetLang(taskData.targetLang || "Target");
 
           const rawLines = taskData.sourceContent?.split("\n") || [];
-          const edited = taskData.editedContent?.split("\n") || [];
+          const editedLines = taskData.editedContent?.split("\n") || [];
 
           const parsedSource = [];
           const parsedTarget = [];
+          const savedRowsMap = {};
 
           rawLines.forEach((line, idx) => {
             const parts = line.split("\t");
-            if (parts.length >= 2) {
-              parsedSource.push(parts[0].trim());
-              parsedTarget.push(parts[1].trim());
+            const source = parts[0]?.trim() || "";
+            const originalTarget = parts[1]?.trim() || "";
+            const edited = editedLines[idx]?.trim();
+
+            parsedSource.push(source);
+            parsedTarget.push(edited || originalTarget);
+
+            if (edited && edited !== originalTarget) {
+              savedRowsMap[idx] = true;
             } else {
-              parsedSource.push(line.trim());
-              parsedTarget.push(edited[idx] || "");
+              savedRowsMap[idx] = false;
             }
           });
 
           setSourceLines(parsedSource);
           setTranslatedLines(parsedTarget);
+          setSavedRows(savedRowsMap);
           setSourceCode(mapLangToISO(taskData.sourceLang));
           setTargetCode(mapLangToISO(taskData.targetLang));
         }
@@ -112,12 +119,68 @@ export default function AnnotatePage() {
       `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
     );
   };
+  const autoTranslateBing = () => {
+    const selectedText = window.getSelection().toString().trim();
 
+    if (!selectedText) {
+      alert("Please select some text to translate.");
+      return;
+    }
+
+    if (!sourceCode || !targetCode) {
+      alert("Missing source or target language codes.");
+      return;
+    }
+
+    // Bing Translate uses a slightly different URL structure
+    const url = `https://www.bing.com/translator?from=${sourceCode}&to=${targetCode}&text=${encodeURIComponent(
+      selectedText
+    )}`;
+
+    const width = 800;
+    const height = 600;
+    const left = (window.innerWidth - width) / 2;
+    const top = (window.innerHeight - height) / 2;
+
+    window.open(
+      url,
+      "_blank",
+      `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes`
+    );
+  };
+
+  const handleRowSave = async (index) => {
+    try {
+      const updatedLine = translatedLines[index];
+      const updatedLines = [...translatedLines];
+      updatedLines[index] = updatedLine;
+      const updatedText = updatedLines.join("\n");
+
+      const res = await fetch(`/api/tasks?id=${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          editedContent: updatedText,
+          currentStatus: "Editing",
+        }),
+      });
+
+      if (res.ok) {
+        setSavedRows((prev) => ({ ...prev, [index]: true }));
+        console.log(`Row ${index + 1} saved.`);
+      } else {
+        console.error("Failed to save row:", await res.text());
+      }
+    } catch (error) {
+      console.error("Save row error:", error);
+    }
+  };
   const saveProgress = async () => {
     try {
       setIsSaving(true);
       const editedContent = translatedLines.join("\n");
-      await fetch(`/api/tasks?id=${taskId}`, {
+
+      const res = await fetch(`/api/tasks?id=${taskId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -125,7 +188,16 @@ export default function AnnotatePage() {
           currentStatus: "Under editing",
         }),
       });
-      alert("Progress saved!");
+
+      if (res.ok) {
+        alert("All progress saved!");
+        // Mark all rows as saved (green tick)
+        const allSaved = {};
+        translatedLines.forEach((_, i) => (allSaved[i] = true));
+        setSavedRows(allSaved);
+      } else {
+        console.error("Save error:", await res.text());
+      }
     } catch (error) {
       console.error("Save error:", error);
     } finally {
@@ -160,6 +232,12 @@ export default function AnnotatePage() {
           className="mb-4 bg-gradient-to-r from-[#0891B2] to-[#0F4C75] text-white"
         >
           GMT
+        </Button>
+        <Button
+          onClick={autoTranslateBing}
+          className="bg-gradient-to-r from-[#0891B2] to-[#0F4C75] text-white"
+        >
+          BMT
         </Button>
         <Button
           onClick={saveProgress}
@@ -197,43 +275,37 @@ export default function AnnotatePage() {
                   {line}
                 </TableCell>
                 <TableCell
-  className="whitespace-pre-line border-l border-gray-400 text-black"
-  contentEditable
-  suppressContentEditableWarning
-  onInput={(e) => {
-    const newText = e.currentTarget.innerText;
+                  className="whitespace-pre-line border-l border-gray-400 text-black"
+                  contentEditable
+                  suppressContentEditableWarning
+                  onInput={(e) => {
+                    const newText = e.currentTarget.innerText;
 
-    // Update the local state for live preview
-    const newLines = [...translatedLines];
-    newLines[index] = newText;
+                    // Mark row as unsaved
+                    setSavedRows((prev) => ({ ...prev, [index]: false }));
+                  }}
+                  onBlur={(e) => {
+                    const newText = e.currentTarget.innerText.trim();
+                    if (newText !== translatedLines[index]) {
+                      const newLines = [...translatedLines];
+                      newLines[index] = newText;
+                      setTranslatedLines(newLines);
+                    }
+                  }}
+                >
+                  {translatedLines[index]}
+                </TableCell>
 
-    // Mark this row as edited and unsaved (tick turns gray)
-    setSavedRows((prev) => ({ ...prev, [index]: false }));
-  }}
-  onBlur={(e) => {
-    const newText = e.currentTarget.innerText.trim();
-    if (newText !== translatedLines[index]) {
-      const newLines = [...translatedLines];
-      newLines[index] = newText;
-      setTranslatedLines(newLines);
-    }
-  }}
->
-  {translatedLines[index]}
-</TableCell>
-
-<TableCell className="text-center border-l border-gray-400">
-  <button
-    onClick={() => {
-      setSavedRows((prev) => ({ ...prev, [index]: true }));
-    }}
-    className={`text-xl ${
-      savedRows[index] ? "text-green-700" : "text-gray-400"
-    }`}
-  >
-    <Check />
-  </button>
-</TableCell>
+                <TableCell className="text-center border-l border-gray-400">
+                  <button
+                    onClick={() => handleRowSave(index)}
+                    className={`text-xl ${
+                      savedRows[index] ? "text-green-700" : "text-gray-400"
+                    }`}
+                  >
+                    <Check />
+                  </button>
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -241,7 +313,9 @@ export default function AnnotatePage() {
       )}
 
       {task.taskType === "NER" && <p>🔍 NER Annotation UI Goes Here</p>}
-      {task.taskType === "Headings" && <p>📑 Headings Annotation UI Goes Here</p>}
+      {task.taskType === "Headings" && (
+        <p>📑 Headings Annotation UI Goes Here</p>
+      )}
 
       <div className="mt-4 flex gap-4">
         <Button onClick={saveProgress} variant="outline">
